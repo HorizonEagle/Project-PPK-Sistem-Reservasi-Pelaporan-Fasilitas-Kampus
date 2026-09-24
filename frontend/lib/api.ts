@@ -249,3 +249,49 @@ export const reportsApi = {
 export const dashboardApi = {
   getStats: () => apiClient.get<ApiResponse<DashboardStats>>('/dashboard'),
 };
+
+// ─── EXPORT Module ────────────────────────────────────────────────────────────
+
+export const exportApi = {
+  download: (params: {
+    type: 'reports' | 'reservations';
+    format?: string;
+    status?: string;
+    facility_id?: string;
+    date_from?: string;
+    date_to?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) searchParams.set(key, value);
+    });
+    
+    // We open in a new tab because it's a file download route and the API sends a CSV
+    const token = localStorage.getItem('token');
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/export?${searchParams.toString()}`;
+    
+    // Fetch directly to handle Authorization header
+    return fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then(async (response) => {
+      if (!response.ok) throw new Error('Gagal mengunduh file');
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const contentDisposition = response.headers.get('content-disposition');
+      let fileName = 'export.csv';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match && match[1]) fileName = match[1];
+      }
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    });
+  },
+};
