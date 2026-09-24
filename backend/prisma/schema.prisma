@@ -1,0 +1,149 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  officer
+  user
+}
+
+enum UserStatus {
+  active
+  pending_verification
+  rejected
+}
+
+enum FacilityType {
+  classroom
+  auditorium
+  laboratory
+  equipment
+  field
+}
+
+enum FacilityStatus {
+  active
+  inactive
+  under_maintenance
+}
+
+enum ReservationStatus {
+  pending
+  approved
+  rejected
+  cancelled_by_user
+  cancelled_by_admin
+}
+
+enum ReportCategory {
+  kerusakan_ringan
+  kerusakan_berat
+  kebersihan
+  keamanan
+  lainnya
+}
+
+enum ReportStatus {
+  new_report
+  in_progress
+  resolved
+  rejected
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         UserRole   @default(user)
+  status       UserStatus @default(pending_verification)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  reservations          Reservation[] @relation("UserReservations")
+  reports               Report[]      @relation("UserReports")
+  processedReservations Reservation[] @relation("ProcessedByReservations")
+  processedReports      Report[]      @relation("ProcessedByReports")
+
+  @@map("users")
+}
+
+model Facility {
+  id          String         @id @default(cuid())
+  name        String
+  type        FacilityType
+  location    String
+  capacity    Int
+  description String?
+  status      FacilityStatus @default(active)
+  imageUrl    String?        @map("image_url")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  reservations Reservation[]
+  reports      Report[]
+
+  @@map("facilities")
+}
+
+model Reservation {
+  id                 String            @id @default(cuid())
+  userId             String            @map("user_id")
+  facilityId         String            @map("facility_id")
+  date               DateTime          @db.Date
+  startTime          DateTime          @map("start_time") @db.Time()
+  endTime            DateTime          @map("end_time") @db.Time()
+  purpose            String
+  status             ReservationStatus @default(pending)
+  rejectionReason    String?           @map("rejection_reason")
+  cancellationReason String?           @map("cancellation_reason")
+  processedBy        String?           @map("processed_by")
+  processedAt        DateTime?         @map("processed_at")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  user      User     @relation("UserReservations", fields: [userId], references: [id])
+  facility  Facility @relation(fields: [facilityId], references: [id])
+  processor User?    @relation("ProcessedByReservations", fields: [processedBy], references: [id])
+
+  // Index for conflict checking query
+  @@index([facilityId, date, status])
+  @@index([userId])
+  @@map("reservations")
+}
+
+model Report {
+  id             String         @id @default(cuid())
+  userId         String         @map("user_id")
+  facilityId     String         @map("facility_id")
+  category       ReportCategory
+  description    String
+  photoUrl       String?        @map("photo_url")
+  status         ReportStatus   @default(new_report)
+  resolutionNote String?        @map("resolution_note")
+  processedBy    String?        @map("processed_by")
+  processedAt    DateTime?      @map("processed_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  user      User     @relation("UserReports", fields: [userId], references: [id])
+  facility  Facility @relation(fields: [facilityId], references: [id])
+  processor User?    @relation("ProcessedByReports", fields: [processedBy], references: [id])
+
+  @@index([facilityId])
+  @@index([userId])
+  @@index([status])
+  @@map("reports")
+}
