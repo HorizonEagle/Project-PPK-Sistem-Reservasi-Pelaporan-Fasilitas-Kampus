@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
+      // Sinkronkan cookie dengan localStorage agar middleware frontend konsisten
+      document.cookie = `token=${storedToken}; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
       // Fetch user profile untuk validasi token masih valid
       authApi
         .me()
@@ -45,8 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(res.data);
         })
         .catch(() => {
-          // Token tidak valid → hapus
+          // Token tidak valid → hapus semua
           localStorage.removeItem('token');
+          document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
           setToken(null);
           setUser(null);
         })
@@ -54,6 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false);
         });
     } else {
+      // Tidak ada token di localStorage → pastikan cookie juga bersih
+      document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
       setIsLoading(false);
     }
   }, []);
@@ -63,6 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { token: newToken, user: userData } = response.data;
 
     localStorage.setItem('token', newToken);
+    // Simpan token juga di cookie agar middleware frontend bisa proteksi route
+    document.cookie = `token=${newToken}; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
     setToken(newToken);
     setUser(userData as User);
   }, []);
@@ -72,6 +79,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Ignore logout errors — tetap clear state
     });
     localStorage.removeItem('token');
+    // Hapus cookie token juga
+    document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
     setToken(null);
     setUser(null);
   }, []);

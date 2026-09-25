@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword, generateToken } from '@/lib/auth';
 import { loginSchema } from '@/lib/validators/auth';
 import { ZodError } from 'zod';
+export { OPTIONS } from '@/lib/cors';
 
 export async function POST(request: NextRequest) {
   try {

@@ -66,6 +66,7 @@ class ApiClient {
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: this.getHeaders(auth),
+      credentials: 'include',
     });
 
     return this.handleResponse<T>(response);
@@ -75,6 +76,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
       headers: this.getHeaders(auth),
+      credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
     });
 
@@ -85,6 +87,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'PATCH',
       headers: this.getHeaders(auth),
+      credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
     });
 
@@ -101,6 +104,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
       headers,
+      credentials: 'include',
       body: formData,
     });
 
@@ -232,8 +236,13 @@ export const reportsApi = {
 
   get: (id: string) => apiClient.get<ApiResponse<Report>>(`/reports/${id}`),
 
-  create: (formData: FormData) =>
-    apiClient.postFormData<ApiResponse<Report>>('/reports', formData),
+  create: (data: {
+    facilityId: string;
+    category: string;
+    description: string;
+    photoUrl?: string;
+  }) =>
+    apiClient.post<ApiResponse<Report>>('/reports', data),
 
   updateStatus: (
     id: string,
@@ -266,27 +275,39 @@ export const exportApi = {
       if (value) searchParams.set(key, value);
     });
     
-    // We open in a new tab because it's a file download route and the API sends a CSV
     const token = localStorage.getItem('token');
     const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/export?${searchParams.toString()}`;
     
-    // Fetch directly to handle Authorization header
     return fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      credentials: 'include',
     }).then(async (response) => {
-      if (!response.ok) throw new Error('Gagal mengunduh file');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Gagal mengunduh file');
+      }
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
+
+      // Get filename from Content-Disposition header or generate fallback
       const contentDisposition = response.headers.get('content-disposition');
-      let fileName = 'export.csv';
+      let fileName = '';
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
         if (match && match[1]) fileName = match[1];
       }
+
+      // Fallback filename based on format
+      if (!fileName) {
+        const format = params.format || 'csv';
+        const ext = format === 'excel' ? 'xls' : format === 'pdf' ? 'html' : 'csv';
+        fileName = `${params.type}_export.${ext}`;
+      }
+
       a.download = fileName;
       document.body.appendChild(a);
       a.click();

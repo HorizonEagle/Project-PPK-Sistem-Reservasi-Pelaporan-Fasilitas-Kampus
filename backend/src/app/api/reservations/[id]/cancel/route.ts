@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../lib/prisma';
 import { cancelReservationSchema } from '../../../../../../lib/validators/reservation';
 import { prismaTimeToHHMM } from '../../../../../../lib/slot-utils';
+import { getAuthUser } from '../../../../../../lib/auth-utils';
+export { OPTIONS } from '../../../../../../lib/cors';
 
 // ─── PATCH /api/reservations/:id/cancel — Batalkan reservasi ──────────────────
 //
@@ -14,8 +16,9 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
+    const userRole = authUser?.role ?? null;
 
     if (!userId || !userRole) {
       return NextResponse.json(

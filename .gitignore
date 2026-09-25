@@ -38,4 +38,5 @@ public/uploads/*
 !public/uploads/.gitkeep
 
 
-master_prompt2
+SYSTEM_DESIGN.md
+master_prompt2.md

@@ -8,6 +8,8 @@ import {
   prismaTimeToHHMM,
 } from '../../../../lib/slot-utils';
 import { Prisma } from '@prisma/client';
+import { getAuthUser } from '../../../../lib/auth-utils';
+export { OPTIONS } from '../../../../lib/cors';
 
 // ─── GET /api/reservations — List reservasi ───────────────────────────────────
 //
@@ -17,8 +19,9 @@ import { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
+    const userRole = authUser?.role ?? null;
 
     if (!userId || !userRole) {
       return NextResponse.json(
@@ -112,8 +115,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
+    const userRole = authUser?.role ?? null;
 
     if (!userId) {
       return NextResponse.json(

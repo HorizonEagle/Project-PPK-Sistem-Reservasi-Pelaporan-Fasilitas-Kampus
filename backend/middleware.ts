@@ -15,20 +15,35 @@ const ALLOWED_ORIGINS = [
 const PUBLIC_API_ROUTES = [
   /^\/api\/auth\/register$/,
   /^\/api\/auth\/login$/,
+  /^\/api\/auth\/logout$/,
   /^\/api\/facilities(\/.*)?$/,  // semua facilities bisa diakses publik
   /^\/api\/health$/,             // health check
   /^\/api\/test$/,               // testing endpoint
 ];
 
-function corsHeaders(origin: string | null): Record<string, string> {
+function getCorsHeaders(origin: string | null): Record<string, string> {
   const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
   };
+}
+
+/** Buat JSON error response dengan CORS headers (karena next.config headers
+ *  TIDAK berlaku untuk response yang dibuat langsung oleh middleware). */
+function corsJsonResponse(
+  body: object,
+  status: number,
+  origin: string | null
+): NextResponse {
+  const response = NextResponse.json(body, { status });
+  Object.entries(getCorsHeaders(origin)).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  return response;
 }
 
 export async function middleware(request: NextRequest) {
@@ -40,30 +55,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Handle CORS preflight (OPTIONS request)
+  // ── OPTIONS preflight ─────────────────────────────────────────────────────
+  // Langsung return 200 + CORS headers. Ini adalah handler yang paling pasti,
+  // karena di beberapa versi Next.js, auto-OPTIONS TIDAK melewati middleware.
+  // Dengan menghandle di sini DAN di next.config.ts, kita punya double-safety.
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
-      status: 204,
-      headers: corsHeaders(origin),
+      status: 200,
+      headers: getCorsHeaders(origin),
     });
   }
 
-  // Cek apakah route ini publik (tidak perlu auth)
+  // ── Route publik — tidak perlu auth ───────────────────────────────────────
   const isPublic = PUBLIC_API_ROUTES.some((pattern) => pattern.test(pathname));
   if (isPublic) {
-    const response = NextResponse.next();
-    Object.entries(corsHeaders(origin)).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-    return response;
+    // Lanjutkan ke route handler; CORS headers ditambahkan oleh next.config.ts
+    return NextResponse.next();
   }
 
-  // Ambil token dari header Authorization
+  // ── Route yang memerlukan autentikasi ─────────────────────────────────────
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json(
+    return corsJsonResponse(
       { error: 'Autentikasi diperlukan. Sertakan token Bearer di header Authorization.' },
-      { status: 401, headers: corsHeaders(origin) }
+      401,
+      origin
     );
   }
 
@@ -78,22 +94,17 @@ export async function middleware(request: NextRequest) {
     requestHeaders.set('x-user-email', payload.email as string);
     requestHeaders.set('x-user-role', payload.role as string);
 
-    const response = NextResponse.next({
+    // Lanjutkan ke route handler; CORS headers ditambahkan oleh next.config.ts
+    return NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
-
-    // Tambahkan CORS headers ke response
-    Object.entries(corsHeaders(origin)).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-
-    return response;
   } catch {
-    return NextResponse.json(
+    return corsJsonResponse(
       { error: 'Token tidak valid atau sudah kadaluarsa. Silakan login kembali.' },
-      { status: 401, headers: corsHeaders(origin) }
+      401,
+      origin
     );
   }
 }

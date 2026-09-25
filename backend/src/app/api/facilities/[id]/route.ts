@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 import { updateFacilitySchema } from '../../../../../lib/validators/facility';
+import { getAuthUser } from '../../../../../lib/auth-utils';
+export { OPTIONS } from '../../../../../lib/cors';
 
 // ─── GET /api/facilities/:id — Detail fasilitas (publik) ─────────────────────
 
@@ -42,7 +44,8 @@ export async function PATCH(
     const { id } = await params;
 
     // Cek role dari header (inject oleh middleware)
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userRole = authUser?.role ?? null;
 
     if (!userRole || (userRole !== 'admin' && userRole !== 'officer')) {
       return NextResponse.json(

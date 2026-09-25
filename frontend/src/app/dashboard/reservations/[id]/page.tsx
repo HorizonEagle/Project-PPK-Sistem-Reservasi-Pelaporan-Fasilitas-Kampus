@@ -105,7 +105,7 @@ export default function ReservationDetailPage({
 
   if (error || !reservation) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="max-w-6xl mx-auto px-4 py-16">
         <Alert type="error" title="Error">
           {error || 'Reservasi tidak ditemukan'}
         </Alert>
@@ -131,7 +131,7 @@ export default function ReservationDetailPage({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back link */}
       <Link
         href="/dashboard/reservations"

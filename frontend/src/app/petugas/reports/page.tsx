@@ -11,6 +11,8 @@ import {
   Button,
   Modal,
   Textarea,
+  Table,
+  Select,
 } from '@/components/ui';
 import type { PaginatedResponse, Report } from '@/types';
 import {
@@ -32,6 +34,7 @@ export default function PetugasReportsPage() {
   const [actionType, setActionType] = useState<'in_progress' | 'resolved' | 'rejected' | null>(null);
   const [resolutionNote, setResolutionNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const fetchReports = () => {
     setIsLoading(true);
@@ -62,14 +65,16 @@ export default function PetugasReportsPage() {
     setSelectedReport(report);
     setActionType(type);
     setResolutionNote('');
+    setActionError('');
     setIsModalOpen(true);
   };
 
   const handleProcess = async () => {
     if (!selectedReport || !actionType) return;
+    setActionError('');
 
     if ((actionType === 'resolved' || actionType === 'rejected') && !resolutionNote.trim()) {
-      alert('Catatan resolusi/penolakan wajib diisi');
+      setActionError('Catatan resolusi/penolakan wajib diisi');
       return;
     }
 
@@ -85,7 +90,7 @@ export default function PetugasReportsPage() {
       setActionType(null);
       fetchReports();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses laporan');
+      setActionError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses laporan');
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +105,7 @@ export default function PetugasReportsPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Manajemen Laporan Kerusakan</h1>
         <p className="mt-1 text-sm text-gray-600">
@@ -110,21 +115,16 @@ export default function PetugasReportsPage() {
 
       <Card className="mb-6">
         <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700">Filter Status:</label>
-          <select
+          <Select
+            id="statusFilter"
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {statusOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            options={statusOptions}
+            placeholder="Semua Status"
+          />
           <Button variant="outline" size="sm" onClick={fetchReports} className="ml-2">
             🔄 Refresh
           </Button>
@@ -144,115 +144,87 @@ export default function PetugasReportsPage() {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tanggal / Pelapor
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fasilitas / Kategori
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Deskripsi
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reports?.data.map((report) => (
-                    <tr key={report.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {formatDateTime(report.createdAt)}
-                        </div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          {report.user?.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {report.facility?.name}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {reportCategoryLabel(report.category)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate" title={report.description}>
-                          {report.description}
-                        </div>
-                        {report.photoUrl && (
-                          <a
-                            href={report.photoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline mt-1 inline-block"
-                          >
-                            📷 Lihat Foto
-                          </a>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge className={reportStatusColor(report.status)}>
-                          {reportStatusLabel(report.status)}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {report.status === 'new_report' && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleActionClick(report, 'in_progress')}
-                            >
-                              Tindak Lanjuti
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              onClick={() => handleActionClick(report, 'rejected')}
-                            >
-                              Tolak
-                            </Button>
-                          </div>
-                        )}
-                        {report.status === 'in_progress' && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() => handleActionClick(report, 'resolved')}
-                            className="bg-green-600 hover:bg-green-700 ring-green-500"
-                          >
-                            Tandai Selesai
-                          </Button>
-                        )}
-                        {(report.status === 'resolved' || report.status === 'rejected') && (
-                          <span className="text-gray-400 text-xs italic">
-                            Diproses oleh {report.processor?.name || '-'}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {reports?.data.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                        Tidak ada laporan kerusakan ditemukan.
-                      </td>
-                    </tr>
+          <Table
+            headers={['Tanggal / Pelapor', 'Fasilitas / Kategori', 'Deskripsi', 'Status', 'Aksi']}
+            isEmpty={!reports?.data.length}
+            emptyMessage="Tidak ada laporan kerusakan ditemukan."
+          >
+            {reports?.data.map((report) => (
+              <tr key={report.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {formatDateTime(report.createdAt)}
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {report.user?.name}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">
+                    {report.facility?.name}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {reportCategoryLabel(report.category)}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900 max-w-xs truncate" title={report.description}>
+                    {report.description}
+                  </div>
+                  {report.photoUrl && (
+                    <a
+                      href={report.photoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                    >
+                      📷 Lihat Foto
+                    </a>
                   )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Badge className={reportStatusColor(report.status)}>
+                    {reportStatusLabel(report.status)}
+                  </Badge>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  {report.status === 'new_report' && (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleActionClick(report, 'in_progress')}
+                      >
+                        Tindak Lanjuti
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleActionClick(report, 'rejected')}
+                      >
+                        Tolak
+                      </Button>
+                    </div>
+                  )}
+                  {report.status === 'in_progress' && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={() => handleActionClick(report, 'resolved')}
+                      className="bg-green-600 hover:bg-green-700 ring-green-500"
+                    >
+                      Tandai Selesai
+                    </Button>
+                  )}
+                  {(report.status === 'resolved' || report.status === 'rejected') && (
+                    <span className="text-gray-400 text-xs italic">
+                      Diproses oleh {report.processor?.name || '-'}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </Table>
 
           <div className="mt-4">
             <Pagination
@@ -302,8 +274,11 @@ export default function PetugasReportsPage() {
               value={resolutionNote}
               onChange={(e) => setResolutionNote(e.target.value)}
               rows={4}
+              id="resolution-note"
             />
           )}
+
+          {actionError && <Alert type="error">{actionError}</Alert>}
 
           <div className="flex justify-end gap-3 mt-6">
             <Button

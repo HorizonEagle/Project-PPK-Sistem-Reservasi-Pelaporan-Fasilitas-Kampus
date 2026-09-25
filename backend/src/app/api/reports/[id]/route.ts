@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 import { updateReportStatusSchema } from '../../../../../lib/validators/report';
+import { getAuthUser } from '../../../../../lib/auth-utils';
+export { OPTIONS } from '../../../../../lib/cors';
 
 // ─── GET /api/reports/:id — Detail laporan ────────────────────────────────────
 
@@ -10,8 +12,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
+    const userRole = authUser?.role ?? null;
 
     if (!userId || !userRole) {
       return NextResponse.json(
@@ -68,8 +71,9 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
+    const userRole = authUser?.role ?? null;
 
     if (!userId || !userRole) {
       return NextResponse.json(

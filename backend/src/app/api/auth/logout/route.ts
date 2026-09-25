@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export { OPTIONS } from '@/lib/cors';
 
 // Logout dilakukan di client dengan menghapus token.
 // Endpoint ini disediakan untuk konsistensi API dan bisa digunakan

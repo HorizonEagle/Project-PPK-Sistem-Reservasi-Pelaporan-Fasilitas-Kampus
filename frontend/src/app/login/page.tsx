@@ -9,7 +9,7 @@ import { Input, Button, Alert } from '@/components/ui';
 import { Suspense } from 'react';
 
 function LoginContent() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect');
@@ -18,6 +18,18 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Jika sudah login, redirect ke dashboard sesuai role
+  if (!authLoading && isAuthenticated && user) {
+    const dashboardHref =
+      user.role === 'admin'
+        ? '/admin'
+        : user.role === 'officer'
+        ? '/petugas'
+        : '/dashboard';
+    router.replace(redirectTo || dashboardHref);
+    return null;
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,21 +45,9 @@ function LoginContent() {
     try {
       await login(email, password);
 
-      // Simpan token juga di cookie untuk middleware
-      const token = localStorage.getItem('token');
-      if (token) {
-        document.cookie = `token=${token}; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
-      }
-
-      // Redirect ke halaman yang diminta atau dashboard sesuai role
-      if (redirectTo) {
-        router.push(redirectTo);
-        return;
-      }
-
-      // Fetch ulang user dari context untuk cek role
-      // user masih null saat ini, jadi kita redirect setelah login
-      router.push('/');
+      // Redirect ke halaman yang diminta atau home
+      // (landing page sekarang mendeteksi login dan menampilkan dashboard link)
+      router.push(redirectTo || '/');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login gagal. Coba lagi.');

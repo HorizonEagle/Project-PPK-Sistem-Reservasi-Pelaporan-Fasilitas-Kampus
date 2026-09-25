@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth-utils';
+export { OPTIONS } from '@/lib/cors';
 
 // GET /api/auth/me — Return current authenticated user profile
 // Token sudah diverifikasi oleh middleware, user info ada di headers
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
 
     if (!userId) {
       return NextResponse.json(

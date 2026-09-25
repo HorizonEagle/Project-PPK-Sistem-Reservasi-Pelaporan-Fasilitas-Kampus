@@ -4,10 +4,12 @@ import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Input, Button, Alert, Select } from '@/components/ui';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 
   const [form, setForm] = useState({
     name: '',
@@ -20,6 +22,14 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Jika sudah login, redirect ke dashboard
+  if (!authLoading && isAuthenticated && user) {
+    const dashboardHref =
+      user.role === 'admin' ? '/admin' : user.role === 'officer' ? '/petugas' : '/dashboard';
+    router.replace(dashboardHref);
+    return null;
+  }
 
   const validate = () => {
     const newErrors: Record<string, string> = {};

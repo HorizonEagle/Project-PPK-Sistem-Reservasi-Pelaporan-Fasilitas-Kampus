@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+export { OPTIONS } from '../../../../lib/cors';
 
 /**
  * GET /api/health

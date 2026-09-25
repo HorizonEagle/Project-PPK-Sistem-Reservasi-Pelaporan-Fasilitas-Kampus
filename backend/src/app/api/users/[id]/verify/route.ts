@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyUserSchema } from '@/lib/validators/auth';
 import { ZodError } from 'zod';
+import { getAuthUser } from '@/lib/auth-utils';
+export { OPTIONS } from '@/lib/cors';
 
 /**
  * PATCH /api/users/:id/verify
@@ -13,7 +15,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const requestRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const requestRole = authUser?.role ?? null;
     if (requestRole !== 'admin') {
       return NextResponse.json(
         { error: 'Akses ditolak. Hanya admin yang dapat memverifikasi akun.' },

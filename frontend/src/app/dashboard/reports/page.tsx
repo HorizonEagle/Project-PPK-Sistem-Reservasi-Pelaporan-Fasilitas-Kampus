@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { reportsApi } from '@/lib/api';
-import { Spinner, Alert, Badge, Card, Pagination, EmptyState, Button } from '@/components/ui';
+import { Spinner, Alert, Badge, Card, Pagination, EmptyState, Button, Select } from '@/components/ui';
 import type { PaginatedResponse, Report } from '@/types';
 import {
   formatDateTime,
@@ -45,7 +45,7 @@ export default function UserReportsPage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Laporan Saya</h1>
@@ -61,21 +61,16 @@ export default function UserReportsPage() {
       {/* Filter */}
       <Card className="mb-6">
         <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700">Filter Status:</label>
-          <select
+          <Select
+            id="statusFilter"
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {statusOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            options={statusOptions}
+            placeholder="Semua Status"
+          />
           {reports && (
             <span className="text-sm text-gray-500 ml-auto">
               {reports.meta.total} laporan ditemukan
