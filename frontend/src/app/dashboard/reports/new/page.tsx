@@ -44,15 +44,13 @@ export default function NewReportPage() {
     setIsSubmitting(true);
 
     try {
-      // Kirim sebagai JSON (bukan FormData) karena backend mengharapkan JSON
-      const body = {
+      // Kirim sebagai JSON karena backend mengharapkan JSON
+      await reportsApi.create({
         facilityId,
         category,
         description,
         photoUrl: photoUrl || undefined,
-      };
-
-      await reportsApi.create(createFormData(body));
+      });
       router.push('/dashboard/reports');
     } catch (err) {
       if (err instanceof Error) {
@@ -63,15 +61,6 @@ export default function NewReportPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Helper: convert body to FormData for the API client
-  const createFormData = (body: Record<string, string | undefined>): FormData => {
-    const fd = new FormData();
-    Object.entries(body).forEach(([key, value]) => {
-      if (value !== undefined) fd.append(key, value);
-    });
-    return fd;
   };
 
   const facilityOptions = facilities.map((f) => ({

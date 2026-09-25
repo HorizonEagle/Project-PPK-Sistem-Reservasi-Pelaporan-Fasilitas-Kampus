@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { createUserSchema } from '@/lib/validators/auth';
 import { ZodError } from 'zod';
+import { getAuthUser } from '@/lib/auth-utils';
+export { OPTIONS } from '../../../../lib/cors';
 
 /**
  * GET /api/users
@@ -11,7 +13,8 @@ import { ZodError } from 'zod';
  */
 export async function GET(request: NextRequest) {
   try {
-    const requestRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const requestRole = authUser?.role ?? null;
     if (requestRole !== 'admin') {
       return NextResponse.json(
         { error: 'Akses ditolak. Hanya admin yang dapat melihat daftar user.' },
@@ -85,7 +88,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const requestRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const requestRole = authUser?.role ?? null;
     if (requestRole !== 'admin') {
       return NextResponse.json(
         { error: 'Akses ditolak. Hanya admin yang dapat membuat akun.' },

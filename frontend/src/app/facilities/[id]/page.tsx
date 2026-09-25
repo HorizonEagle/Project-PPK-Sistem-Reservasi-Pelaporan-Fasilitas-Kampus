@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { facilitiesApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Card, Badge, Spinner, Alert } from '@/components/ui';
 import { SlotGrid, DatePicker } from '@/components/calendar';
 import {
@@ -18,6 +19,7 @@ export default function FacilityDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { isAuthenticated } = useAuth();
 
   const [facility, setFacility] = useState<Facility | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -166,17 +168,34 @@ export default function FacilityDetailPage({
               )}
             </Card>
 
-            {/* Info box */}
-            <Alert type="info" title="Cara Reservasi">
-              Untuk mereservasi fasilitas ini, silakan{' '}
-              <Link
-                href="/login"
-                className="text-blue-700 font-medium hover:underline"
-              >
-                login
-              </Link>{' '}
-              terlebih dahulu, lalu ajukan reservasi melalui dashboard Anda.
-            </Alert>
+            {/* Info box — berubah berdasarkan status login */}
+            {isAuthenticated ? (
+              <div className="p-4 rounded-xl bg-green-50 border border-green-200">
+                <h3 className="text-sm font-semibold text-green-800 mb-2">
+                  ✅ Anda sudah login
+                </h3>
+                <p className="text-sm text-green-700 mb-3">
+                  Ajukan reservasi untuk fasilitas ini melalui dashboard Anda.
+                </p>
+                <Link
+                  href={`/dashboard/reservations/new?facilityId=${facility.id}`}
+                  className="inline-block px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  📅 Ajukan Reservasi
+                </Link>
+              </div>
+            ) : (
+              <Alert type="info" title="Cara Reservasi">
+                Untuk mereservasi fasilitas ini, silakan{' '}
+                <Link
+                  href="/login"
+                  className="text-blue-700 font-medium hover:underline"
+                >
+                  login
+                </Link>{' '}
+                terlebih dahulu, lalu ajukan reservasi melalui dashboard Anda.
+              </Alert>
+            )}
           </div>
 
           {/* Right: Schedule */}

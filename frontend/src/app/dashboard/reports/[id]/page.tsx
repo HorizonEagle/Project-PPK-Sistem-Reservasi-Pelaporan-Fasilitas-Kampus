@@ -42,7 +42,7 @@ export default function ReportDetailPage() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <Alert type="error">{error}</Alert>
         <Link
           href="/dashboard/reports"
@@ -68,7 +68,7 @@ export default function ReportDetailPage() {
   const isRejected = report.status === 'rejected';
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Link
         href="/dashboard/reports"
         className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1 mb-4"

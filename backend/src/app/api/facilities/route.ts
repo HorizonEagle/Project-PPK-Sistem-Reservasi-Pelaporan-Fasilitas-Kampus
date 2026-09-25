@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 import { createFacilitySchema } from '../../../../lib/validators/facility';
+import { getAuthUser } from '../../../../lib/auth-utils';
 import { FacilityType, Prisma } from '@prisma/client';
+export { OPTIONS } from '../../../../lib/cors';
 
 // ─── GET /api/facilities — List fasilitas (publik, dengan search/filter) ──────
 
@@ -25,7 +27,8 @@ export async function GET(request: NextRequest) {
     const where: Prisma.FacilityWhereInput = {};
 
     // Cek role dari header (inject oleh middleware)
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userRole = authUser?.role ?? null;
 
     // Jika bukan admin/officer, hanya tampilkan fasilitas aktif
     if (!userRole || (userRole !== 'admin' && userRole !== 'officer')) {
@@ -96,7 +99,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Cek role dari header (inject oleh middleware)
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userRole = authUser?.role ?? null;
     if (userRole !== 'admin') {
       return NextResponse.json(
         { error: 'Akses ditolak. Hanya admin yang bisa menambah fasilitas.' },

@@ -1,13 +1,19 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'FasilitasKampus — Sistem Reservasi & Pelaporan',
-  description:
-    'Platform terpusat untuk reservasi fasilitas kampus dan pelaporan kerusakan. Mudah, cepat, transparan.',
-};
+import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 export default function HomePage() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  // Tentukan dashboard href berdasarkan role
+  const dashboardHref =
+    user?.role === 'admin'
+      ? '/admin'
+      : user?.role === 'officer'
+      ? '/petugas'
+      : '/dashboard';
+
   return (
     <div className="min-h-[80vh]">
       {/* Hero */}
@@ -29,12 +35,23 @@ export default function HomePage() {
             >
               Lihat Fasilitas →
             </Link>
-            <Link
-              href="/register"
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl border border-blue-400 hover:bg-blue-500 transition-colors"
-            >
-              Daftar Sekarang
-            </Link>
+            {isLoading ? (
+              <div className="px-8 py-3 bg-blue-600 rounded-xl border border-blue-400 animate-pulse h-12 w-48" />
+            ) : isAuthenticated ? (
+              <Link
+                href={dashboardHref}
+                className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl border border-blue-400 hover:bg-blue-500 transition-colors"
+              >
+                Buka Dashboard →
+              </Link>
+            ) : (
+              <Link
+                href="/register"
+                className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl border border-blue-400 hover:bg-blue-500 transition-colors"
+              >
+                Daftar Sekarang
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -76,24 +93,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA — berubah berdasarkan status login */}
       <section className="py-12 px-4 bg-gray-50">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Sudah punya akun?</h2>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/login"
-              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
-            >
-              Masuk Sekarang
-            </Link>
-            <Link
-              href="/facilities"
-              className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              Lihat Fasilitas
-            </Link>
-          </div>
+          {isLoading ? (
+            <div className="h-16 animate-pulse bg-gray-200 rounded-xl" />
+          ) : isAuthenticated ? (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Halo, {user?.name}! 👋
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Anda login sebagai <span className="font-medium capitalize">{user?.role === 'admin' ? 'Admin' : user?.role === 'officer' ? 'Petugas' : 'Pengguna'}</span>.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Link
+                  href={dashboardHref}
+                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  Buka Dashboard
+                </Link>
+                <Link
+                  href="/facilities"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  Lihat Fasilitas
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Sudah punya akun?</h2>
+              <div className="flex gap-4 justify-center">
+                <Link
+                  href="/login"
+                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  Masuk Sekarang
+                </Link>
+                <Link
+                  href="/facilities"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  Lihat Fasilitas
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>

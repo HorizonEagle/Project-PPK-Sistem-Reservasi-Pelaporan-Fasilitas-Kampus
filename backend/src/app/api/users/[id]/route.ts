@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth-utils';
+export { OPTIONS } from '@/lib/cors';
 
 /**
  * GET /api/users/:id
@@ -10,7 +12,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const requestRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const requestRole = authUser?.role ?? null;
     if (requestRole !== 'admin') {
       return NextResponse.json(
         { error: 'Akses ditolak.' },
@@ -65,7 +68,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const requestRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const requestRole = authUser?.role ?? null;
     if (requestRole !== 'admin') {
       return NextResponse.json(
         { error: 'Akses ditolak.' },

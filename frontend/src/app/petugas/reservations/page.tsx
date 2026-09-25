@@ -164,7 +164,7 @@ export default function PetugasReservationsPage() {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Antrian Reservasi</h1>

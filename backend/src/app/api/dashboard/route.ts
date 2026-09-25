@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
+import { getAuthUser } from '../../../../lib/auth-utils';
+export { OPTIONS } from '../../../../lib/cors';
 
 // ─── GET /api/dashboard — Statistik dashboard ─────────────────────────────────
 //
@@ -8,8 +10,9 @@ import { prisma } from '../../../../lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
+    const authUser = await getAuthUser(request);
+    const userId = authUser?.userId ?? null;
+    const userRole = authUser?.role ?? null;
 
     if (!userId || !userRole) {
       return NextResponse.json(

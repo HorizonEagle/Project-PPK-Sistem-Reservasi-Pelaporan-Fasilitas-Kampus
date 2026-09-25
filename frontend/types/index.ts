@@ -131,4 +131,10 @@ export interface DashboardStats {
   newReports: number;
   totalFacilities: number;
   activeFacilities: number;
+  // Admin/officer dashboard extras
+  totalUsers?: number;
+  pendingUsers?: number;
+  inProgressReports?: number;
+  resolvedReports?: number;
+  maintenanceFacilities?: number;
 }
