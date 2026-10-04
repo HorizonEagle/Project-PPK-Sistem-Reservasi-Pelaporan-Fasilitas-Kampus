@@ -126,7 +126,7 @@ export default function PetugasReportsPage() {
             placeholder="Semua Status"
           />
           <Button variant="outline" size="sm" onClick={fetchReports} className="ml-2">
-            🔄 Refresh
+            Refresh
           </Button>
           {reports && (
             <span className="text-sm text-gray-500 ml-auto font-medium">
@@ -178,7 +178,7 @@ export default function PetugasReportsPage() {
                       rel="noopener noreferrer"
                       className="text-xs text-blue-600 hover:underline mt-1 inline-block"
                     >
-                      📷 Lihat Foto
+                      Lihat Foto
                     </a>
                   )}
                 </td>
@@ -260,7 +260,7 @@ export default function PetugasReportsPage() {
               &quot;Sedang Ditangani&quot;.
               {selectedReport?.category === 'kerusakan_berat' && (
                 <span className="block mt-2 font-medium text-orange-600 bg-orange-50 p-2 rounded">
-                  ⚠️ Laporan ini adalah kerusakan berat. Fasilitas akan otomatis diubah statusnya menjadi &quot;Dalam Perbaikan&quot;.
+                  Perhatian: Laporan ini adalah kerusakan berat. Fasilitas akan otomatis diubah statusnya menjadi &quot;Dalam Perbaikan&quot;.
                 </span>
               )}
             </p>

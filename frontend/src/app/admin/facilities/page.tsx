@@ -167,7 +167,7 @@ export default function AdminFacilitiesPage() {
           </p>
         </div>
         <Button onClick={() => setShowCreateModal(true)}>
-          ➕ Tambah Fasilitas
+          Tambah Fasilitas
         </Button>
       </div>
 
@@ -245,7 +245,7 @@ export default function AdminFacilitiesPage() {
                   <div className="flex items-center gap-2">
                     <Link href={`/admin/facilities/${fac.id}/edit`}>
                       <Button variant="ghost" size="sm">
-                        ✏️ Edit
+                        Edit
                       </Button>
                     </Link>
                     {fac.status === 'active' && (
@@ -254,7 +254,7 @@ export default function AdminFacilitiesPage() {
                         size="sm"
                         onClick={() => handleStatusChange(fac.id, 'inactive')}
                       >
-                        🚫 Nonaktifkan
+                        Nonaktifkan
                       </Button>
                     )}
                     {fac.status === 'inactive' && (
@@ -263,7 +263,7 @@ export default function AdminFacilitiesPage() {
                         size="sm"
                         onClick={() => handleStatusChange(fac.id, 'active')}
                       >
-                        ✅ Aktifkan
+                        Aktifkan
                       </Button>
                     )}
                     {fac.status === 'under_maintenance' && (
@@ -272,7 +272,7 @@ export default function AdminFacilitiesPage() {
                         size="sm"
                         onClick={() => handleStatusChange(fac.id, 'active')}
                       >
-                        ✅ Selesai Perbaikan
+                        Selesai Perbaikan
                       </Button>
                     )}
                   </div>

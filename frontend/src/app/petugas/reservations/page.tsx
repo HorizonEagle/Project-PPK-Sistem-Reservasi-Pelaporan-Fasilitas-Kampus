@@ -26,12 +26,12 @@ import {
 import type { Reservation, PaginatedResponse } from '@/types';
 
 const STATUS_OPTIONS = [
-  { value: 'pending', label: '⏳ Menunggu (Antrian)' },
+  { value: 'pending', label: 'Menunggu (Antrian)' },
   { value: '', label: 'Semua Status' },
-  { value: 'approved', label: '✅ Disetujui' },
-  { value: 'rejected', label: '❌ Ditolak' },
-  { value: 'cancelled_by_user', label: '🚫 Dibatalkan (User)' },
-  { value: 'cancelled_by_admin', label: '⚠️ Dibatalkan (Petugas)' },
+  { value: 'approved', label: 'Disetujui' },
+  { value: 'rejected', label: 'Ditolak' },
+  { value: 'cancelled_by_user', label: 'Dibatalkan (User)' },
+  { value: 'cancelled_by_admin', label: 'Dibatalkan (Petugas)' },
 ];
 
 export default function PetugasReservationsPage() {
@@ -220,7 +220,6 @@ export default function PetugasReservationsPage() {
               ? 'Tidak ada reservasi yang menunggu persetujuan saat ini.'
               : 'Tidak ada reservasi ditemukan dengan filter ini.'
           }
-          icon={<span className="text-5xl">📅</span>}
         />
       ) : (
         <>
@@ -263,7 +262,7 @@ export default function PetugasReservationsPage() {
                     {formatDate(res.date)}
                   </div>
                   <div className="text-xs text-gray-500">
-                    🕐 {formatTime(res.startTime)} – {formatTime(res.endTime)}
+                    {formatTime(res.startTime)} – {formatTime(res.endTime)}
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -287,7 +286,7 @@ export default function PetugasReservationsPage() {
                         setShowDetailModal(true);
                       }}
                     >
-                      🔍 Detail
+                      Detail
                     </Button>
 
                     {/* Action buttons for pending */}
@@ -299,7 +298,7 @@ export default function PetugasReservationsPage() {
                           onClick={() => handleApprove(res)}
                           disabled={actionLoading}
                         >
-                          ✅
+                          Setujui
                         </Button>
                         <Button
                           variant="danger"
@@ -311,7 +310,7 @@ export default function PetugasReservationsPage() {
                             setShowRejectModal(true);
                           }}
                         >
-                          ❌
+                          Tolak
                         </Button>
                       </div>
                     )}
@@ -328,7 +327,7 @@ export default function PetugasReservationsPage() {
                           setShowCancelModal(true);
                         }}
                       >
-                        ⚠️ Cancel
+                        Batalkan
                       </Button>
                     )}
                   </div>
@@ -391,7 +390,7 @@ export default function PetugasReservationsPage() {
                   {selectedReservation.facility?.name}
                 </p>
                 <p className="text-xs text-gray-400">
-                  📍 {selectedReservation.facility?.location}
+                  {selectedReservation.facility?.location}
                 </p>
               </div>
               <div>
@@ -402,7 +401,7 @@ export default function PetugasReservationsPage() {
                   {formatDate(selectedReservation.date)}
                 </p>
                 <p className="text-xs text-gray-500">
-                  🕐 {formatTime(selectedReservation.startTime)} –{' '}
+                  {formatTime(selectedReservation.startTime)} –{' '}
                   {formatTime(selectedReservation.endTime)}
                 </p>
               </div>

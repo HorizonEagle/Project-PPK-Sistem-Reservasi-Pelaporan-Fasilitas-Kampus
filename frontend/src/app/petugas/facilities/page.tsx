@@ -190,7 +190,7 @@ export default function PetugasFacilitiesPage() {
                           })
                         }
                       >
-                        🔧 Tandai Perbaikan
+                        Tandai Perbaikan
                       </Button>
                     )}
                     {fac.status === 'under_maintenance' && (
@@ -206,7 +206,7 @@ export default function PetugasFacilitiesPage() {
                           })
                         }
                       >
-                        ✅ Selesai Perbaikan
+                        Selesai Perbaikan
                       </Button>
                     )}
                     {fac.status === 'inactive' && (

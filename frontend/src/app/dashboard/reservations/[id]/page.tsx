@@ -122,12 +122,36 @@ export default function ReservationDetailPage({
   }
 
   // Status icon
-  const statusIcons: Record<string, string> = {
-    pending: '⏳',
-    approved: '✅',
-    rejected: '❌',
-    cancelled_by_user: '🚫',
-    cancelled_by_admin: '⚠️',
+  const renderStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return (
+          <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        );
+      case 'rejected':
+      case 'cancelled_by_user':
+      case 'cancelled_by_admin':
+        return (
+          <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+        );
+      case 'pending':
+      default:
+        return (
+          <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        );
+    }
   };
 
   return (
@@ -157,9 +181,7 @@ export default function ReservationDetailPage({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl">
-                {statusIcons[reservation.status] || '📅'}
-              </span>
+              {renderStatusIcon(reservation.status)}
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
                   Detail Reservasi
@@ -184,7 +206,7 @@ export default function ReservationDetailPage({
         {/* Info Fasilitas */}
         <Card>
           <h2 className="text-base font-semibold text-gray-900 mb-4">
-            🏛️ Fasilitas
+            Fasilitas
           </h2>
           <dl className="space-y-3">
             <div>
@@ -200,7 +222,7 @@ export default function ReservationDetailPage({
                 Lokasi
               </dt>
               <dd className="text-sm text-gray-900 mt-0.5">
-                📍 {reservation.facility?.location || '-'}
+                {reservation.facility?.location || '-'}
               </dd>
             </div>
             <div>
@@ -219,7 +241,7 @@ export default function ReservationDetailPage({
         {/* Info Waktu */}
         <Card>
           <h2 className="text-base font-semibold text-gray-900 mb-4">
-            📅 Jadwal
+            Jadwal
           </h2>
           <dl className="space-y-3">
             <div>
@@ -235,7 +257,7 @@ export default function ReservationDetailPage({
                 Waktu
               </dt>
               <dd className="text-sm text-gray-900 mt-0.5">
-                🕐 {formatTime(reservation.startTime)} –{' '}
+                {formatTime(reservation.startTime)} –{' '}
                 {formatTime(reservation.endTime)}
               </dd>
             </div>
@@ -253,7 +275,7 @@ export default function ReservationDetailPage({
         {/* Tujuan */}
         <Card className="lg:col-span-2">
           <h2 className="text-base font-semibold text-gray-900 mb-3">
-            📝 Tujuan Penggunaan
+            Tujuan Penggunaan
           </h2>
           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
             {reservation.purpose}
@@ -266,7 +288,7 @@ export default function ReservationDetailPage({
           reservation.processor) && (
           <Card className="lg:col-span-2">
             <h2 className="text-base font-semibold text-gray-900 mb-3">
-              📌 Informasi Pemrosesan
+              Informasi Pemrosesan
             </h2>
             <dl className="space-y-3">
               {reservation.processor && (
@@ -329,7 +351,7 @@ export default function ReservationDetailPage({
             variant="danger"
             onClick={() => setShowCancelModal(true)}
           >
-            🚫 Batalkan Reservasi
+            Batalkan Reservasi
           </Button>
         </div>
       )}

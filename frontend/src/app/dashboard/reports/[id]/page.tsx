@@ -58,9 +58,9 @@ export default function ReportDetailPage() {
 
   // Status progress steps
   const steps = [
-    { key: 'new_report', label: 'Baru', icon: '📝' },
-    { key: 'in_progress', label: 'Ditangani', icon: '🔧' },
-    { key: 'resolved', label: 'Selesai', icon: '✅' },
+    { key: 'new_report', label: 'Baru', step: 1 },
+    { key: 'in_progress', label: 'Ditangani', step: 2 },
+    { key: 'resolved', label: 'Selesai', step: 3 },
   ];
 
   const statusOrder = ['new_report', 'in_progress', 'resolved'];
@@ -99,13 +99,19 @@ export default function ReportDetailPage() {
                 return (
                   <div key={step.key} className="flex flex-col items-center flex-1">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-colors ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${
                         isCompleted
                           ? 'bg-blue-600 border-blue-600 text-white'
                           : 'bg-white border-gray-300 text-gray-400'
                       } ${isCurrent ? 'ring-2 ring-blue-200' : ''}`}
                     >
-                      {step.icon}
+                      {isCompleted && !isCurrent ? (
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        step.step
+                      )}
                     </div>
                     <span
                       className={`text-xs mt-1 font-medium ${
@@ -148,7 +154,7 @@ export default function ReportDetailPage() {
                 {report.facility?.name}
               </p>
               <p className="text-xs text-gray-500">
-                📍 {report.facility?.location}
+                {report.facility?.location}
               </p>
             </div>
             <div>

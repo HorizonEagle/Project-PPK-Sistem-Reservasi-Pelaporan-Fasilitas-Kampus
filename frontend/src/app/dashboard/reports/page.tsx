@@ -54,7 +54,7 @@ export default function UserReportsPage() {
           </p>
         </div>
         <Link href="/dashboard/reports/new">
-          <Button leftIcon={<span>➕</span>}>Buat Laporan</Button>
+          <Button>Buat Laporan</Button>
         </Link>
       </div>
 
@@ -90,7 +90,6 @@ export default function UserReportsPage() {
           <EmptyState
             title="Belum ada laporan"
             description="Anda belum pernah membuat laporan kerusakan fasilitas."
-            icon={<span className="text-5xl">📝</span>}
             action={
               <Link href="/dashboard/reports/new">
                 <Button>Buat Laporan Pertama</Button>
@@ -121,8 +120,9 @@ export default function UserReportsPage() {
                         {report.description}
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                        <span>📍 {report.facility?.location}</span>
-                        <span>🕐 {formatDateTime(report.createdAt)}</span>
+                        <span>{report.facility?.location}</span>
+                        <span>·</span>
+                        <span>{formatDateTime(report.createdAt)}</span>
                       </div>
                     </div>
                     <span className="text-gray-400 ml-4 text-lg">→</span>

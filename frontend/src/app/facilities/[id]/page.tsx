@@ -40,17 +40,15 @@ export default function FacilityDetailPage({
       .finally(() => setIsLoading(false));
   }, [id]);
 
-  // Facility type icon
-  const typeIcon = (t: string) => {
-    const icons: Record<string, string> = {
-      classroom: '🏫',
-      auditorium: '🎭',
-      laboratory: '🔬',
-      equipment: '🔧',
-      field: '⚽',
-    };
-    return icons[t] || '🏛️';
+  // Facility image helper
+  const facilityImages: Record<string, string> = {
+    classroom: '/facilities/classroom.jpg',
+    laboratory: '/facilities/laboratory.jpg',
+    auditorium: '/facilities/auditorium.jpg',
+    field: '/facilities/field.jpg',
+    equipment: '/facilities/equipment.jpg',
   };
+  const getFacilityImage = (t: string) => facilityImages[t] || '/facilities/default.jpg';
 
   if (isLoading) {
     return (
@@ -80,25 +78,30 @@ export default function FacilityDetailPage({
 
   return (
     <div className="min-h-[80vh]">
-      {/* Header */}
-      <section className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white py-14 px-4">
-        <div className="max-w-5xl mx-auto">
+      {/* Header with Horizontal Hero Image */}
+      <section className="relative bg-ink text-white py-14 px-4 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={getFacilityImage(facility.type)}
+            alt={facility.name}
+            className="w-full h-full object-cover opacity-35"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
+        </div>
+        <div className="relative max-w-5xl mx-auto">
           <Link
             href="/facilities"
-            className="text-blue-200 hover:text-white text-sm mb-4 inline-block transition-colors"
+            className="text-white/80 hover:text-white text-sm mb-4 inline-flex items-center gap-1.5 transition-colors"
           >
             ← Kembali ke Daftar Fasilitas
           </Link>
-          <div className="flex items-start gap-4">
-            <span className="text-5xl opacity-80">
-              {typeIcon(facility.type)}
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold font-heading mb-2">
                 {facility.name}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 text-sm text-blue-100">
-                <Badge className="bg-white/20 text-white">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
+                <Badge className="bg-white/20 text-white border-white/20">
                   {facilityTypeLabel(facility.type)}
                 </Badge>
                 <Badge className={facilityStatusColor(facility.status)}>
@@ -106,6 +109,12 @@ export default function FacilityDetailPage({
                 </Badge>
               </div>
             </div>
+            <Link
+              href={`/dashboard/reservations/new?facilityId=${facility.id}`}
+              className="px-5 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm shadow-md transition-all self-start sm:self-auto cursor-pointer"
+            >
+              Reservasi Fasilitas Ini
+            </Link>
           </div>
         </div>
       </section>
@@ -116,36 +125,43 @@ export default function FacilityDetailPage({
           {/* Left: Info */}
           <div className="lg:col-span-1 space-y-6">
             <Card>
-              <h2 className="text-base font-semibold text-gray-900 mb-4">
+              <h2 className="text-base font-semibold font-heading text-ink mb-4">
                 Informasi Fasilitas
               </h2>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <dt className="text-xs font-medium text-ink-muted uppercase tracking-wide">
                     Tipe
                   </dt>
-                  <dd className="text-sm text-gray-900 mt-0.5">
+                  <dd className="text-sm font-medium text-ink mt-0.5">
                     {facilityTypeLabel(facility.type)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <dt className="text-xs font-medium text-ink-muted uppercase tracking-wide">
                     Lokasi
                   </dt>
-                  <dd className="text-sm text-gray-900 mt-0.5 flex items-center gap-1">
-                    📍 {facility.location}
+                  <dd className="text-sm font-medium text-ink mt-0.5 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 flex-shrink-0 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {facility.location}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <dt className="text-xs font-medium text-ink-muted uppercase tracking-wide">
                     Kapasitas
                   </dt>
-                  <dd className="text-sm text-gray-900 mt-0.5 flex items-center gap-1">
-                    👥 {facility.capacity} orang
+                  <dd className="text-sm font-medium text-ink mt-0.5 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 flex-shrink-0 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    {facility.capacity} orang
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <dt className="text-xs font-medium text-ink-muted uppercase tracking-wide">
                     Status
                   </dt>
                   <dd className="mt-1">
@@ -172,7 +188,7 @@ export default function FacilityDetailPage({
             {isAuthenticated ? (
               <div className="p-4 rounded-xl bg-green-50 border border-green-200">
                 <h3 className="text-sm font-semibold text-green-800 mb-2">
-                  ✅ Anda sudah login
+                  Anda sudah login
                 </h3>
                 <p className="text-sm text-green-700 mb-3">
                   Ajukan reservasi untuk fasilitas ini melalui dashboard Anda.
@@ -181,7 +197,7 @@ export default function FacilityDetailPage({
                   href={`/dashboard/reservations/new?facilityId=${facility.id}`}
                   className="inline-block px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  📅 Ajukan Reservasi
+                  Ajukan Reservasi
                 </Link>
               </div>
             ) : (
@@ -203,7 +219,7 @@ export default function FacilityDetailPage({
             <Card>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h2 className="text-base font-semibold text-gray-900">
-                  📅 Jadwal Ketersediaan
+                  Jadwal Ketersediaan
                 </h2>
                 <DatePicker
                   value={selectedDate}

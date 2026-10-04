@@ -116,7 +116,7 @@ export default function AdminUserDetailPage() {
                 onClick={() => handleVerify('approve')}
                 isLoading={isActionLoading}
               >
-                ✅ Verifikasi
+                Verifikasi
               </Button>
             </>
           )}

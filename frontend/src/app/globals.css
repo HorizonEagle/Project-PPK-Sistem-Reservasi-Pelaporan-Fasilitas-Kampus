@@ -1,20 +1,116 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ─── Brand (terukur: 500, 600, accent) ─────────────────────── */
+  --color-primary-50:  #EEF0FD;
+  --color-primary-100: #DFE2FA;
+  --color-primary-200: #C3C9F5;
+  --color-primary-500: #5C6AE4;
+  --color-primary-600: #4350C0;
+  --color-primary-700: #343FA0;
+  --color-primary-900: #1E2566;
+  --color-accent:      #7366FE;
+  --color-gold:        #FFD771;
+  --color-sienna:      #B25E44;
+
+  /* ─── Neutral ────────────────────────────────────────────────── */
+  --color-surface:     #FFFFFF;
+  --color-canvas:      #F5F4F1;
+  --color-ink:         #333333;
+  --color-ink-soft:    #716F6B;
+  --color-ink-muted:   #8B8C96;
+  --color-line:        #E7E5E0;
+
+  /* ─── Typography ─────────────────────────────────────────────── */
+  --font-sans:    var(--font-inter, "Inter"), system-ui, sans-serif;
+  --font-heading: var(--font-plus-jakarta, "Plus Jakarta Sans"), "Inter", system-ui, sans-serif;
+
+  /* ─── Radius ─────────────────────────────────────────────────── */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-2xl:  32px;
+  --radius-full: 9999px;
+
+  /* ─── Shadow ─────────────────────────────────────────────────── */
+  --shadow-xs:    0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.08);
+  --shadow-card:  11px 11px 40px rgba(0,0,0,0.10);
+  --shadow-float: 0 16px 128px rgba(0,0,0,0.10);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-
+/* ─── Base ───────────────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* ─── Dark Mode Override ─────────────────────────────────────────── */
+.dark {
+  --color-surface:     #1C1C1E;
+  --color-canvas:      #141414;
+  --color-ink:         #F0EFEC;
+  --color-ink-soft:    #A8A6A1;
+  --color-ink-muted:   #6B6C76;
+  --color-line:        #2C2C2E;
+  --color-primary-50:  #25283D;
+  --color-primary-100: #303554;
+  --color-primary-200: #3E4675;
+  --color-primary-500: #5C6AE4;
+  --color-primary-600: #5C6AE4;
+  --color-primary-700: #4350C0;
+}
+
+/* ─── Typography Utilities (Catatan Gaya) ────────────────────────── */
+.text-display {
+  font-family: var(--font-heading);
+  font-size: 4rem; /* 64px */
+  line-height: 1; /* 64px */
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.text-hero-h1 {
+  font-family: var(--font-heading);
+  font-size: 3.5rem; /* 56px */
+  line-height: 1; /* 56px */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem; /* 24px */
+  line-height: 1.875rem; /* 30px */
+  font-weight: 500;
+}
+
+.text-lead {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.5rem; /* 24px */
+  font-weight: 400;
+}
+
+.text-body-lg {
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+  font-weight: 400;
+}
+
+.text-body {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem; /* 20px */
+  font-weight: 400;
+}
+
+.text-label {
+  font-size: 0.75rem; /* 12px */
+  line-height: 1rem; /* 16px */
+  font-weight: 500;
 }

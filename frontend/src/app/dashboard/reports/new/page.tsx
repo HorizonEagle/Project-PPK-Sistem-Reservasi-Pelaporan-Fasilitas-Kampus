@@ -141,7 +141,7 @@ export default function NewReportPage() {
           {/* Info kategori */}
           <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
             <p className="text-xs text-blue-700">
-              💡 <strong>Tips:</strong> Pilih kategori yang sesuai:
+              <strong>Panduan Kategori:</strong> Pilih kategori yang sesuai:
             </p>
             <ul className="text-xs text-blue-600 mt-1 space-y-0.5 ml-5 list-disc">
               <li><strong>Kerusakan Ringan:</strong> Lampu mati, cat mengelupas, dll.</li>

@@ -54,7 +54,10 @@ class ApiClient {
   }
 
   async get<T>(path: string, params?: Record<string, string>, auth = true): Promise<T> {
-    const url = new URL(`${this.baseUrl}${path}`);
+    const base = this.baseUrl.startsWith('http')
+      ? this.baseUrl
+      : `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${this.baseUrl}`;
+    const url = new URL(`${base}${path}`);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {

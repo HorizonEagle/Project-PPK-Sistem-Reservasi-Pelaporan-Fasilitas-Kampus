@@ -145,7 +145,7 @@ function buildPdfHtml(headers: string[], rows: string[][], title: string, dateRa
   </style>
 </head>
 <body>
-  <h1>📄 ${title}</h1>
+  <h1>${title}</h1>
   <p class="subtitle">${dateRange}</p>
   <p class="stats">Total: ${rows.length} data | Diekspor: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
   <table>

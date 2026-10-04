@@ -79,7 +79,7 @@ export default function MyReservationsPage() {
           </p>
         </div>
         <Link href="/dashboard/reservations/new">
-          <Button>📅 Ajukan Reservasi Baru</Button>
+          <Button>Ajukan Reservasi Baru</Button>
         </Link>
       </div>
 
@@ -110,7 +110,6 @@ export default function MyReservationsPage() {
         <EmptyState
           title="Belum ada reservasi"
           description="Anda belum pernah mengajukan reservasi fasilitas."
-          icon={<span className="text-5xl">📅</span>}
           action={
             <Link href="/dashboard/reservations/new">
               <Button>Ajukan Reservasi</Button>

@@ -64,17 +64,15 @@ export default function FacilitiesPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Facility type icon
-  const typeIcon = (t: string) => {
-    const icons: Record<string, string> = {
-      classroom: '🏫',
-      auditorium: '🎭',
-      laboratory: '🔬',
-      equipment: '🔧',
-      field: '⚽',
-    };
-    return icons[t] || '🏛️';
+  // Facility image helper
+  const facilityImages: Record<string, string> = {
+    classroom: '/facilities/classroom.jpg',
+    laboratory: '/facilities/laboratory.jpg',
+    auditorium: '/facilities/auditorium.jpg',
+    field: '/facilities/field.jpg',
+    equipment: '/facilities/equipment.jpg',
   };
+  const getFacilityImage = (t: string) => facilityImages[t] || '/facilities/default.jpg';
 
   return (
     <div className="min-h-[80vh]">
@@ -131,7 +129,6 @@ export default function FacilitiesPage() {
           <EmptyState
             title="Tidak ada fasilitas ditemukan"
             description="Coba ubah filter pencarian Anda."
-            icon={<span className="text-5xl">🏛️</span>}
           />
         ) : (
           <>
@@ -150,40 +147,50 @@ export default function FacilitiesPage() {
                 >
                   <Card
                     padding="none"
-                    className="overflow-hidden hover:shadow-lg transition-all duration-300 group-hover:-translate-y-0.5"
+                    className="overflow-hidden hover:shadow-card transition-all duration-300 group-hover:-translate-y-0.5 border border-line"
                   >
-                    {/* Visual header */}
-                    <div className="h-36 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center relative">
-                      <span className="text-6xl opacity-30 group-hover:scale-110 transition-transform duration-300">
-                        {typeIcon(facility.type)}
-                      </span>
+                    {/* Visual header with horizontal photo */}
+                    <div className="relative w-full aspect-[16/9] overflow-hidden bg-canvas">
+                      <img
+                        src={getFacilityImage(facility.type)}
+                        alt={facility.name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                       <div className="absolute top-3 right-3">
                         <Badge className={facilityStatusColor(facility.status)}>
                           {facilityStatusLabel(facility.status)}
                         </Badge>
                       </div>
+                      <div className="absolute bottom-2.5 left-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface/90 text-ink backdrop-blur-xs shadow-xs border border-white/20">
+                          {facilityTypeLabel(facility.type)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Content */}
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 text-base mb-1 group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-semibold font-heading text-ink text-base mb-2 group-hover:text-primary-600 transition-colors truncate">
                         {facility.name}
                       </h3>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className="bg-blue-50 text-blue-700 text-[10px]">
-                          {facilityTypeLabel(facility.type)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          📍 {facility.location}
+                      <div className="flex items-center gap-4 text-xs text-ink-muted">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <svg className="w-3.5 h-3.5 flex-shrink-0 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {facility.location}
                         </span>
-                        <span className="flex items-center gap-1">
-                          👥 {facility.capacity} orang
+                        <span className="flex items-center gap-1.5 flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 flex-shrink-0 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          {facility.capacity} orang
                         </span>
                       </div>
                       {facility.description && (
-                        <p className="text-xs text-gray-400 mt-2 line-clamp-2">
+                        <p className="text-xs text-ink-muted mt-2 line-clamp-2">
                           {facility.description}
                         </p>
                       )}

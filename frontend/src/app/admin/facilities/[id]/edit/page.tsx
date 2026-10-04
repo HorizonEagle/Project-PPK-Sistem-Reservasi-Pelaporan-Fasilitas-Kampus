@@ -249,7 +249,7 @@ export default function EditFacilityPage({
               isLoading={isSaving}
               disabled={!form.name || !form.location || !form.capacity}
             >
-              💾 Simpan Perubahan
+              Simpan Perubahan
             </Button>
           </div>
         </div>
