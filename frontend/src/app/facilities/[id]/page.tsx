@@ -177,7 +177,7 @@ export default function FacilityDetailPage({
                   <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
                     Deskripsi
                   </dt>
-                  <p className="text-sm text-gray-700 leading-relaxed">
+                  <p className="text-sm text-gray-700 leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
                     {facility.description}
                   </p>
                 </div>

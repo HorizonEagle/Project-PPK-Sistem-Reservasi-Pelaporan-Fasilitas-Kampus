@@ -116,7 +116,7 @@ export default function UserReportsPage() {
                       <h3 className="text-sm font-semibold text-gray-900 truncate">
                         {report.facility?.name || 'Fasilitas'}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">
+                      <p className="text-sm text-gray-600 mt-0.5 line-clamp-2 break-words [overflow-wrap:anywhere]">
                         {report.description}
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">

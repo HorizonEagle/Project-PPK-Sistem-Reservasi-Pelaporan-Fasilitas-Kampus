@@ -265,8 +265,8 @@ export default function PetugasReservationsPage() {
                     {formatTime(res.startTime)} – {formatTime(res.endTime)}
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <p className="text-xs text-gray-600 line-clamp-2 max-w-[200px]">
+                <td className="px-4 py-3 max-w-[200px]">
+                  <p className="text-xs text-gray-600 line-clamp-2 break-words [overflow-wrap:anywhere]">
                     {res.purpose}
                   </p>
                 </td>
@@ -411,7 +411,7 @@ export default function PetugasReservationsPage() {
               <p className="text-xs font-medium text-gray-500 uppercase">
                 Tujuan Penggunaan
               </p>
-              <p className="text-sm text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed">
                 {selectedReservation.purpose}
               </p>
             </div>
@@ -421,7 +421,7 @@ export default function PetugasReservationsPage() {
                 <p className="text-xs font-medium text-gray-500 uppercase">
                   Alasan Penolakan
                 </p>
-                <p className="text-sm text-red-700 mt-1 bg-red-50 p-3 rounded-lg">
+                <p className="text-sm text-red-700 mt-1 bg-red-50 p-3 rounded-lg break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed">
                   {selectedReservation.rejectionReason}
                 </p>
               </div>
@@ -432,7 +432,7 @@ export default function PetugasReservationsPage() {
                 <p className="text-xs font-medium text-gray-500 uppercase">
                   Alasan Pembatalan
                 </p>
-                <p className="text-sm text-orange-700 mt-1 bg-orange-50 p-3 rounded-lg">
+                <p className="text-sm text-orange-700 mt-1 bg-orange-50 p-3 rounded-lg break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed">
                   {selectedReservation.cancellationReason}
                 </p>
               </div>

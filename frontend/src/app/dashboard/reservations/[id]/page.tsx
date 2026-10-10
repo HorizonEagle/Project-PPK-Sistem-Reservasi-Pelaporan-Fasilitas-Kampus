@@ -277,7 +277,7 @@ export default function ReservationDetailPage({
           <h2 className="text-base font-semibold text-gray-900 mb-3">
             Tujuan Penggunaan
           </h2>
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
             {reservation.purpose}
           </p>
         </Card>
@@ -316,7 +316,7 @@ export default function ReservationDetailPage({
                   <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Alasan Penolakan
                   </dt>
-                  <dd className="text-sm text-red-700 mt-0.5 bg-red-50 p-3 rounded-lg">
+                  <dd className="text-sm text-red-700 mt-0.5 bg-red-50 p-3 rounded-lg break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed">
                     {reservation.rejectionReason}
                   </dd>
                 </div>
@@ -326,7 +326,7 @@ export default function ReservationDetailPage({
                   <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Alasan Pembatalan
                   </dt>
-                  <dd className="text-sm text-orange-700 mt-0.5 bg-orange-50 p-3 rounded-lg">
+                  <dd className="text-sm text-orange-700 mt-0.5 bg-orange-50 p-3 rounded-lg break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed">
                     {reservation.cancellationReason}
                   </dd>
                 </div>
