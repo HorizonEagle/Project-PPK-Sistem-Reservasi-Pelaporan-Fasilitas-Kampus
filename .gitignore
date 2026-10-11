@@ -34,8 +34,12 @@ Thumbs.db
 *.swp
 
 # Uploads (file yang diupload pengguna)
-public/uploads/*
-!public/uploads/.gitkeep
+public/uploads/**
+!public/uploads/**/
+!public/uploads/**/.gitkeep
+backend/public/uploads/**
+!backend/public/uploads/**/
+!backend/public/uploads/**/.gitkeep
 
 
 SYSTEM_DESIGN.md

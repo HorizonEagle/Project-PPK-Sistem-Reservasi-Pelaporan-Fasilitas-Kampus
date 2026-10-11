@@ -10,6 +10,8 @@ import {
   facilityTypeLabel,
   facilityStatusLabel,
   facilityStatusColor,
+  getFacilityImageUrl,
+  handleFacilityImageError,
 } from '@/lib/utils';
 import type { Facility } from '@/types';
 
@@ -39,16 +41,6 @@ export default function FacilityDetailPage({
       .catch((err) => setError(err.message || 'Gagal memuat fasilitas'))
       .finally(() => setIsLoading(false));
   }, [id]);
-
-  // Facility image helper
-  const facilityImages: Record<string, string> = {
-    classroom: '/facilities/classroom.jpg',
-    laboratory: '/facilities/laboratory.jpg',
-    auditorium: '/facilities/auditorium.jpg',
-    field: '/facilities/field.jpg',
-    equipment: '/facilities/equipment.jpg',
-  };
-  const getFacilityImage = (t: string) => facilityImages[t] || '/facilities/default.jpg';
 
   if (isLoading) {
     return (
@@ -82,8 +74,9 @@ export default function FacilityDetailPage({
       <section className="relative bg-ink text-white py-14 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={getFacilityImage(facility.type)}
+            src={getFacilityImageUrl(facility)}
             alt={facility.name}
+            onError={(e) => handleFacilityImageError(e, facility.type)}
             className="w-full h-full object-cover opacity-35"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />

@@ -101,15 +101,21 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 overflow-hidden">
+      <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 overflow-hidden">
+        {/* Fixed Fullscreen Campus Background */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
-          style={{ backgroundImage: "url('/campus-bg.jpg')" }}
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none select-none -z-10"
+          style={{
+            backgroundImage: "url('/campus-bg.jpg')",
+            userSelect: 'none',
+            WebkitUserDrag: 'none',
+          } as React.CSSProperties}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-950/90 via-primary-900/60 to-ink/70 backdrop-blur-[1px]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary-950/95 via-primary-900/75 to-ink/80 backdrop-blur-[2px]" />
         </div>
+
         <div className="w-full max-w-md relative z-10">
-          <div className="bg-surface/95 dark:bg-surface/90 backdrop-blur-md rounded-2xl border border-line shadow-float p-8 text-center text-ink">
+          <div className="bg-surface/95 dark:bg-surface/90 backdrop-blur-2xl rounded-2xl border border-white/50 dark:border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] p-8 text-center text-ink">
             <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -124,7 +130,7 @@ export default function RegisterPage() {
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center w-full px-6 py-3 bg-primary-600 text-white font-semibold rounded-md hover:bg-primary-700 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center w-full px-6 py-2.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-sm text-sm"
             >
               Kembali ke Halaman Login
             </Link>
@@ -135,40 +141,53 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 overflow-hidden">
-      {/* Educational University Campus Background Image */}
+    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-3 sm:p-4 overflow-x-hidden">
+      {/* Educational University Campus Background Image (Fixed Fullscreen, Non-scrollable) */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
-        style={{ backgroundImage: "url('/campus-bg.jpg')" }}
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none select-none -z-10"
+        style={{
+          backgroundImage: "url('/campus-bg.jpg')",
+          userSelect: 'none',
+          WebkitUserDrag: 'none',
+        } as React.CSSProperties}
+        draggable={false}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-950/90 via-primary-900/60 to-ink/70 backdrop-blur-[1px]" />
+        {/* Deep contrast overlay — 100% full screen coverage */}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary-950/95 via-primary-900/75 to-ink/80 backdrop-blur-[2px]" />
       </div>
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Card */}
-        <div className="bg-surface/95 dark:bg-surface/90 backdrop-blur-md rounded-2xl border border-line shadow-float p-8 sm:p-10 text-ink">
+      {/* Floating Compact Registration Card Container */}
+      <div className="w-full max-w-[500px] relative z-20 my-auto">
+        {/* Ambient floating glow */}
+        <div className="absolute -inset-2 bg-gradient-to-r from-primary-500/25 via-accent/20 to-primary-600/25 rounded-3xl blur-2xl opacity-75 pointer-events-none" />
+
+        {/* Compact Glassmorphism Card */}
+        <div className="relative bg-surface/95 dark:bg-surface/90 backdrop-blur-2xl rounded-2xl border border-white/50 dark:border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] p-5 sm:p-7 text-ink select-text">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-white overflow-hidden flex items-center justify-center shadow-card mb-4 p-1.5 border border-line/40">
+          <div className="text-center mb-4 sm:mb-5">
+            <div className="mx-auto w-11 h-11 rounded-xl bg-white overflow-hidden flex items-center justify-center shadow-card mb-2.5 transform hover:scale-105 transition-transform duration-200 p-1 border border-line/40">
               <img
                 src="/Images/Faskam-logo.png"
                 alt="Logo FASKAM"
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="text-2xl font-bold font-heading text-ink">Buat Akun Baru</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-ink-soft">
+            <h1 className="text-xl sm:text-2xl font-bold font-heading text-ink tracking-tight">
+              Buat Akun Baru
+            </h1>
+            <p className="mt-0.5 text-xs text-ink-soft">
               FASKAM — Fasilitas Kampus
             </p>
           </div>
 
           {serverError && (
-            <Alert type="error" className="mb-6">
+            <Alert type="error" className="mb-3 text-xs py-2">
               {serverError}
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4" id="register-form">
+          <form onSubmit={handleSubmit} className="space-y-3" id="register-form">
+            {/* Nama Lengkap */}
             <Input
               id="name"
               label="Nama Lengkap"
@@ -182,66 +201,78 @@ export default function RegisterPage() {
               autoFocus
             />
 
-            <Input
-              id="email"
-              label="Email Kampus"
-              type="email"
-              placeholder="nama@kampus.ac.id"
-              value={form.email}
-              onChange={(e) => update('email', e.target.value)}
-              error={errors.email}
-              required
-              autoComplete="email"
-            />
+            {/* Email Kampus & Status Akademik (Grid 2 Kolom) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                id="email"
+                label="Email Kampus"
+                type="email"
+                placeholder="nama@kampus.ac.id"
+                value={form.email}
+                onChange={(e) => update('email', e.target.value)}
+                error={errors.email}
+                required
+                autoComplete="email"
+              />
 
-            <Select
-              id="role"
-              label="Status Akademik / Peran"
-              value={form.role}
-              onChange={(e) => update('role', e.target.value)}
-              options={[
-                { value: 'mahasiswa', label: 'Mahasiswa' },
-                { value: 'dosen', label: 'Dosen' },
-                { value: 'staf', label: 'Staf Administrasi' },
-              ]}
-              required
-            />
+              <Select
+                id="role"
+                label="Status Akademik"
+                value={form.role}
+                onChange={(e) => update('role', e.target.value)}
+                options={[
+                  { value: 'mahasiswa', label: 'Mahasiswa' },
+                  { value: 'dosen', label: 'Dosen' },
+                  { value: 'staf', label: 'Staf Administrasi' },
+                ]}
+                required
+              />
+            </div>
 
-            <Input
-              id="password"
-              label="Kata Sandi"
-              type="password"
-              placeholder="Minimal 8 karakter"
-              value={form.password}
-              onChange={(e) => update('password', e.target.value)}
-              error={errors.password}
-              helperText="Gunakan minimal 8 karakter kombinasi"
-              required
-              autoComplete="new-password"
-            />
+            {/* Kata Sandi & Konfirmasi Sandi (Grid 2 Kolom) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                id="password"
+                label="Kata Sandi"
+                type="password"
+                placeholder="Min. 8 karakter"
+                value={form.password}
+                onChange={(e) => update('password', e.target.value)}
+                error={errors.password}
+                required
+                autoComplete="new-password"
+              />
 
-            <Input
-              id="confirm-password"
-              label="Konfirmasi Kata Sandi"
-              type="password"
-              placeholder="Ulangi kata sandi"
-              value={form.confirmPassword}
-              onChange={(e) => update('confirmPassword', e.target.value)}
-              error={errors.confirmPassword}
-              required
-              autoComplete="new-password"
-            />
+              <Input
+                id="confirm-password"
+                label="Konfirmasi Sandi"
+                type="password"
+                placeholder="Ulangi kata sandi"
+                value={form.confirmPassword}
+                onChange={(e) => update('confirmPassword', e.target.value)}
+                error={errors.confirmPassword}
+                required
+                autoComplete="new-password"
+              />
+            </div>
 
-            <Alert type="warning">
-              Akun baru memerlukan <strong>verifikasi oleh admin</strong> sebelum dapat
-              digunakan untuk melakukan reservasi.
-            </Alert>
+            {/* Catatan Verifikasi High-Contrast */}
+            <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-amber-100/90 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-600/80 shadow-2xs">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-200 dark:bg-amber-900/90 flex items-center justify-center text-amber-900 dark:text-amber-300">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-xs text-slate-900 dark:text-white font-medium leading-snug">
+                Akun baru memerlukan <strong className="font-bold text-amber-950 dark:text-amber-200 underline decoration-amber-500/70">verifikasi admin</strong> sebelum dapat digunakan reservasi.
+              </p>
+            </div>
 
-            <div className="pt-2">
+            {/* Submit Button */}
+            <div className="pt-1">
               <Button
                 type="submit"
-                className="w-full font-semibold shadow-sm"
-                size="lg"
+                className="w-full font-semibold shadow-sm h-10 text-sm"
                 isLoading={isLoading}
               >
                 Daftar Akun Baru →
@@ -249,7 +280,8 @@ export default function RegisterPage() {
             </div>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-line text-center">
+          {/* Footer Link */}
+          <div className="mt-4 pt-3.5 border-t border-line text-center">
             <p className="text-xs text-ink-soft">
               Sudah memiliki akun terdaftar?{' '}
               <Link

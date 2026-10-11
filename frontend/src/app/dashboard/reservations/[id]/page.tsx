@@ -12,6 +12,8 @@ import {
   formatDate,
   formatTime,
   formatDateTime,
+  getFacilityImageUrl,
+  handleFacilityImageError,
 } from '@/lib/utils';
 import type { Reservation } from '@/types';
 
@@ -233,6 +235,16 @@ export default function ReservationDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Info Fasilitas */}
         <Card>
+          {reservation.facility && (
+            <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden mb-4 bg-gray-100 border border-gray-200">
+              <img
+                src={getFacilityImageUrl(reservation.facility)}
+                alt={reservation.facility?.name || 'Fasilitas'}
+                onError={(e) => handleFacilityImageError(e, reservation.facility?.type)}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
           <h2 className="text-base font-semibold text-gray-900 mb-4">
             Fasilitas
           </h2>

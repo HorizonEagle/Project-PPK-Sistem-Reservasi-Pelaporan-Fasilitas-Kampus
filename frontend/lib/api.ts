@@ -266,6 +266,19 @@ export const facilitiesApi = {
     apiClient.patch<ApiResponse<Facility>>(`/facilities/${id}`, data),
 };
 
+// ─── UPLOAD Module ────────────────────────────────────────────────────────────
+
+export const uploadApi = {
+  upload: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.postFormData<ApiResponse<{ url: string; filename: string; size: number }>>(
+      '/upload',
+      formData
+    );
+  },
+};
+
 // ─── RESERVATIONS Module ──────────────────────────────────────────────────────
 
 export const reservationsApi = {
