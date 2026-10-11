@@ -12,6 +12,7 @@ import {
   facilityStatusColor,
   getFacilityImageUrl,
   handleFacilityImageError,
+  todayInJakarta,
 } from '@/lib/utils';
 import type { Facility } from '@/types';
 
@@ -28,7 +29,7 @@ export default function FacilityDetailPage({
   const [error, setError] = useState('');
 
   // Date for schedule
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayInJakarta();
   const [selectedDate, setSelectedDate] = useState(today);
 
   useEffect(() => {

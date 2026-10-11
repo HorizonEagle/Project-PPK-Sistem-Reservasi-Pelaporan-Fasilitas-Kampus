@@ -43,7 +43,7 @@ export async function PATCH(
   try {
     const { id } = await params;
 
-    // Cek role dari header (inject oleh middleware)
+    // Role diambil dari token yang terverifikasi
     const authUser = await getAuthUser(request);
     const userRole = authUser?.role ?? null;
 

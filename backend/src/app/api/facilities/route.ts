@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: Prisma.FacilityWhereInput = {};
 
-    // Cek role dari header (inject oleh middleware)
+    // Role diambil dari token yang terverifikasi (opsional: katalog ini publik)
     const authUser = await getAuthUser(request);
     const userRole = authUser?.role ?? null;
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Cek role dari header (inject oleh middleware)
+    // Role diambil dari token yang terverifikasi
     const authUser = await getAuthUser(request);
     const userRole = authUser?.role ?? null;
     if (userRole !== 'admin') {

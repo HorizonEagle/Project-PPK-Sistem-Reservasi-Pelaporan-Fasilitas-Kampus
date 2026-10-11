@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
         totalReports,
         newReports,
         resolvedReports,
+        totalFacilities,
+        activeFacilities,
       ] = await Promise.all([
         prisma.reservation.count({ where: { userId } }),
         prisma.reservation.count({ where: { userId, status: 'pending' } }),
@@ -37,6 +39,9 @@ export async function GET(request: NextRequest) {
         prisma.report.count({ where: { userId } }),
         prisma.report.count({ where: { userId, status: 'new_report' } }),
         prisma.report.count({ where: { userId, status: 'resolved' } }),
+        // Katalog fasilitas bersifat publik, jadi angka ini aman untuk semua peran
+        prisma.facility.count(),
+        prisma.facility.count({ where: { status: 'active' } }),
       ]);
 
       return NextResponse.json({
@@ -47,8 +52,8 @@ export async function GET(request: NextRequest) {
           totalReports,
           newReports,
           resolvedReports,
-          totalFacilities: 0,
-          activeFacilities: 0,
+          totalFacilities,
+          activeFacilities,
         },
       });
     }

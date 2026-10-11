@@ -1,9 +1,6 @@
 import { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-change-in-production'
-);
+import { getJwtSecret } from './jwt-secret';
 
 export interface AuthUser {
   userId: string;
@@ -11,30 +8,20 @@ export interface AuthUser {
   role: 'admin' | 'officer' | 'user';
 }
 
+const VALID_ROLES: AuthUser['role'][] = ['admin', 'officer', 'user'];
+
 /**
  * Ekstrak dan verifikasi JWT dari request header Authorization.
- * Digunakan langsung di route handler karena Next.js 16 TIDAK meneruskan
- * custom headers yang di-set oleh middleware ke route handlers.
  *
- * @returns AuthUser jika token valid, null jika tidak ada/tidak valid
+ * Identitas HANYA diambil dari token yang tanda tangannya terverifikasi.
+ * Header `x-user-*` sengaja TIDAK dipercaya: header itu bisa ditulis siapa pun
+ * dari sisi klien, sehingga membacanya sama dengan membiarkan penyerang memilih
+ * perannya sendiri (mis. `x-user-role: admin` tanpa token).
+ *
+ * @returns AuthUser jika token valid dan berisi payload yang lengkap, null jika tidak
  */
 export async function getAuthUser(request: NextRequest): Promise<AuthUser | null> {
   const authHeader = request.headers.get('authorization');
-
-  // Juga cek x-user-id untuk backward compatibility (jika middleware berhasil inject)
-  const xUserId = request.headers.get('x-user-id');
-  const xUserEmail = request.headers.get('x-user-email');
-  const xUserRole = request.headers.get('x-user-role');
-
-  if (xUserId && xUserEmail && xUserRole) {
-    return {
-      userId: xUserId,
-      email: xUserEmail,
-      role: xUserRole as AuthUser['role'],
-    };
-  }
-
-  // Fallback: decode JWT langsung dari Authorization header
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
@@ -42,12 +29,19 @@ export async function getAuthUser(request: NextRequest): Promise<AuthUser | null
   const token = authHeader.slice(7);
 
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return {
-      userId: payload.userId as string,
-      email: payload.email as string,
-      role: payload.role as AuthUser['role'],
-    };
+    const { payload } = await jwtVerify(token, getJwtSecret());
+
+    const { userId, email, role } = payload as Record<string, unknown>;
+    if (
+      typeof userId !== 'string' ||
+      typeof email !== 'string' ||
+      typeof role !== 'string' ||
+      !VALID_ROLES.includes(role as AuthUser['role'])
+    ) {
+      return null;
+    }
+
+    return { userId, email, role: role as AuthUser['role'] };
   } catch {
     return null;
   }

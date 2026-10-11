@@ -170,6 +170,36 @@ export function isValidDate(dateString: string): boolean {
 }
 
 /**
+ * Tanggal hari ini (YYYY-MM-DD) di zona Asia/Jakarta (WIB).
+ *
+ * Jangan pakai `new Date().toISOString().split('T')[0]`: itu tanggal UTC, sehingga antara
+ * 00.00 dan 07.00 WIB hasilnya masih "kemarin" dan form reservasi menawarkan tanggal yang salah.
+ * Zona WIB dipilih agar sama dengan validasi tanggal di backend (validateReservationDate).
+ */
+export function todayInJakarta(now: Date = new Date()): string {
+  // Locale en-CA memformat tanggal sebagai YYYY-MM-DD
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}
+
+/**
+ * Apakah waktu mulai reservasi (WIB, UTC+7) sudah lewat?
+ * Backend menolak persetujuan reservasi seperti ini (400), jadi UI menandainya
+ * dan menonaktifkan tombol Setujui.
+ *
+ * @param dateIso - tanggal dari API, mis. "2026-09-25T00:00:00.000Z" atau "2026-09-25"
+ * @param startTime - "HH:mm"
+ */
+export function hasReservationStarted(dateIso: string, startTime: string, now: number = Date.now()): boolean {
+  const startMs = new Date(`${dateIso.slice(0, 10)}T${startTime}:00+07:00`).getTime();
+  return !isNaN(startMs) && startMs <= now;
+}
+
+/**
  * Format angka jadi singkat (1000 → 1K)
  */
 export function formatCount(n: number): string {

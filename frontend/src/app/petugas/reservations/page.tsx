@@ -24,6 +24,7 @@ import {
   formatDate,
   formatTime,
   formatDateTime,
+  hasReservationStarted,
 } from '@/lib/utils';
 import type { Reservation, PaginatedResponse } from '@/types';
 
@@ -323,6 +324,11 @@ export default function PetugasReservationsPage() {
                   <Badge className={reservationStatusColor(res.status)}>
                     {reservationStatusLabel(res.status)}
                   </Badge>
+                  {res.status === 'pending' && hasReservationStarted(res.date, res.startTime) && (
+                    <div className="mt-1">
+                      <Badge className="bg-amber-100 text-amber-800">Waktu sudah lewat</Badge>
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
@@ -345,7 +351,7 @@ export default function PetugasReservationsPage() {
                           variant="primary"
                           size="sm"
                           onClick={() => handleApprove(res)}
-                          disabled={actionLoading}
+                          disabled={actionLoading || hasReservationStarted(res.date, res.startTime)}
                         >
                           Setujui
                         </Button>

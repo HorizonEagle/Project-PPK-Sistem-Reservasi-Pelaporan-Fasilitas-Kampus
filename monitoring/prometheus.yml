@@ -7,10 +7,11 @@ scrape_configs:
     metrics_path: /api/metrics
     static_configs:
       - targets: ['backend:3001']
-    # If METRICS_TOKEN is set on the backend, uncomment and use the same value:
-    # authorization:
-    #   type: Bearer
-    #   credentials: change-me
+    # Backend (production) menolak /api/metrics tanpa METRICS_TOKEN. Nilai di bawah harus
+    # sama dengan METRICS_TOKEN di docker-compose.yml; ganti keduanya di lingkungan nyata.
+    authorization:
+      type: Bearer
+      credentials: dev-metrics-token-change-me
 
   - job_name: prometheus
     static_configs:

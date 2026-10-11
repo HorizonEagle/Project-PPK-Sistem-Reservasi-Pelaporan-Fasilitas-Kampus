@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getJwtSecret } from '../lib/jwt-secret';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-change-in-production'
-);
+/**
+ * Proxy (di Next.js 16 menggantikan `middleware.ts`).
+ *
+ * Lokasinya HARUS di dalam `src/` karena aplikasi memakai `src/app`. Saat file ini
+ * masih berupa `backend/middleware.ts` di luar `src/`, Next.js mengabaikannya: tidak
+ * ada pengecekan token dan CORS dari lapis ini tidak pernah berjalan.
+ *
+ * Proxy hanyalah lapis pertama (401 lebih awal). Keputusan identitas dan peran tetap
+ * diambil ulang oleh setiap route handler lewat `getAuthUser()` dari token yang
+ * terverifikasi; proxy TIDAK meneruskan identitas lewat header.
+ */
 
 // CORS origins yang diizinkan
 const ALLOWED_ORIGINS = [
@@ -11,15 +20,16 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:3000',
 ];
 
-// Route yang tidak perlu autentikasi
-const PUBLIC_API_ROUTES = [
-  /^\/api\/auth\/register$/,
-  /^\/api\/auth\/login$/,
-  /^\/api\/auth\/logout$/,
-  /^\/api\/facilities(\/.*)?$/,  // semua facilities bisa diakses publik
-  /^\/api\/health$/,             // health check
-  /^\/api\/test$/,               // testing endpoint
-  /^\/api\/metrics$/,            // Prometheus scrape (dilindungi METRICS_TOKEN opsional)
+// Route yang tidak perlu autentikasi. Dicocokkan per METHOD, bukan hanya per path,
+// supaya mis. POST /api/facilities (khusus admin) tidak ikut menjadi publik.
+const PUBLIC_API_ROUTES: { pattern: RegExp; methods: string[] }[] = [
+  { pattern: /^\/api\/auth\/register$/, methods: ['POST'] },
+  { pattern: /^\/api\/auth\/login$/, methods: ['POST'] },
+  { pattern: /^\/api\/auth\/logout$/, methods: ['POST'] },
+  { pattern: /^\/api\/facilities(\/.*)?$/, methods: ['GET', 'HEAD'] }, // katalog publik, hanya baca
+  { pattern: /^\/api\/health$/, methods: ['GET', 'HEAD'] },
+  { pattern: /^\/api\/test$/, methods: ['GET', 'HEAD'] },    // hanya aktif di non-production
+  { pattern: /^\/api\/metrics$/, methods: ['GET', 'HEAD'] }, // dilindungi METRICS_TOKEN
 ];
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
@@ -34,7 +44,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
 }
 
 /** Buat JSON error response dengan CORS headers (karena next.config headers
- *  TIDAK berlaku untuk response yang dibuat langsung oleh middleware). */
+ *  TIDAK berlaku untuk response yang dibuat langsung oleh proxy). */
 function corsJsonResponse(
   body: object,
   status: number,
@@ -47,7 +57,7 @@ function corsJsonResponse(
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const origin = request.headers.get('origin');
 
@@ -57,9 +67,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── OPTIONS preflight ─────────────────────────────────────────────────────
-  // Langsung return 200 + CORS headers. Ini adalah handler yang paling pasti,
-  // karena di beberapa versi Next.js, auto-OPTIONS TIDAK melewati middleware.
-  // Dengan menghandle di sini DAN di next.config.ts, kita punya double-safety.
+  // Langsung return 200 + CORS headers.
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 200,
@@ -68,7 +76,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Route publik — tidak perlu auth ───────────────────────────────────────
-  const isPublic = PUBLIC_API_ROUTES.some((pattern) => pattern.test(pathname));
+  const isPublic = PUBLIC_API_ROUTES.some(
+    ({ pattern, methods }) => pattern.test(pathname) && methods.includes(request.method)
+  );
   if (isPublic) {
     // Lanjutkan ke route handler; CORS headers ditambahkan oleh next.config.ts
     return NextResponse.next();
@@ -87,20 +97,9 @@ export async function middleware(request: NextRequest) {
   const token = authHeader.slice(7);
 
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-
-    // Inject user info ke request headers untuk dipakai route handler
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', payload.userId as string);
-    requestHeaders.set('x-user-email', payload.email as string);
-    requestHeaders.set('x-user-role', payload.role as string);
-
-    // Lanjutkan ke route handler; CORS headers ditambahkan oleh next.config.ts
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    await jwtVerify(token, getJwtSecret());
+    // Lanjutkan ke route handler; handler memverifikasi ulang token via getAuthUser()
+    return NextResponse.next();
   } catch {
     return corsJsonResponse(
       { error: 'Token tidak valid atau sudah kadaluarsa. Silakan login kembali.' },

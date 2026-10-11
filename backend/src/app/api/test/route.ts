@@ -4,9 +4,15 @@ export { OPTIONS } from '../../../../lib/cors';
 
 /**
  * GET /api/test
- * Testing endpoint — tampilkan semua user dari database untuk verifikasi
+ * Testing endpoint — tampilkan semua user dari database untuk verifikasi.
+ * Hanya untuk development: di production endpoint ini menjawab 404 karena
+ * membuka daftar user dan akun uji tanpa autentikasi.
  */
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   try {
     // List semua user (tanpa password) untuk testing
     const users = await prisma.user.findMany({
@@ -47,10 +53,11 @@ export async function GET() {
         reservations: reservationCount,
         reports: reportCount,
       },
+      // Password sengaja tidak ditampilkan; lihat prisma/seed.ts
       testAccounts: [
-        { role: 'Admin', email: 'admin@kampus.ac.id', password: 'admin123' },
-        { role: 'Petugas', email: 'petugas@kampus.ac.id', password: 'petugas123' },
-        { role: 'User', email: 'budi@mahasiswa.ac.id', password: 'user123' },
+        { role: 'Admin', email: 'admin@kampus.ac.id' },
+        { role: 'Petugas', email: 'petugas@kampus.ac.id' },
+        { role: 'User', email: 'budi@mahasiswa.ac.id' },
       ],
       data: {
         users,

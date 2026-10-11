@@ -1,3 +1,4 @@
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { prisma } from './prisma';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -5,6 +6,9 @@ import { prisma } from './prisma';
 const OPERATING_START = 7 * 60;   // 07:00 = 420 menit
 const OPERATING_END = 20 * 60;    // 20:00 = 1200 menit
 const SLOT_DURATION = 30;         // 30 menit per slot
+
+/** Reservasi harus diajukan minimal 12 jam sebelum jam mulai (sama dengan aturan di UI kalender). */
+export const MIN_LEAD_HOURS = 12;
 
 // ─── Time Parsing Helpers ─────────────────────────────────────────────────────
 
@@ -103,6 +107,41 @@ export function validateReservationDate(dateStr: string): {
   return { valid: true };
 }
 
+// ─── Lead Time ────────────────────────────────────────────────────────────────
+
+/**
+ * Waktu mulai (WIB, UTC+7) sebagai epoch milidetik.
+ * Contoh: ("2026-10-15", "08:30") → 2026-10-15T08:30:00+07:00
+ */
+export function reservationStartMs(dateStr: string, startTime: string): number {
+  return new Date(`${dateStr}T${startTime}:00+07:00`).getTime();
+}
+
+/**
+ * Validasi bahwa jam mulai minimal MIN_LEAD_HOURS jam dari sekarang.
+ * Aturan ini sebelumnya hanya ada di UI kalender; di sini ditegakkan juga di backend
+ * supaya pemanggil API langsung tidak bisa melewatinya.
+ *
+ * @param now - (opsional) waktu acuan, untuk pengujian
+ */
+export function validateLeadTime(
+  dateStr: string,
+  startTime: string,
+  now: number = Date.now()
+): { valid: boolean; error?: string } {
+  const startMs = reservationStartMs(dateStr, startTime);
+  if (isNaN(startMs)) {
+    return { valid: false, error: 'Tanggal atau waktu tidak valid' };
+  }
+  if (startMs < now + MIN_LEAD_HOURS * 60 * 60 * 1000) {
+    return {
+      valid: false,
+      error: `Reservasi harus diajukan minimal ${MIN_LEAD_HOURS} jam sebelum waktu mulai`,
+    };
+  }
+  return { valid: true };
+}
+
 // ─── Conflict Check ───────────────────────────────────────────────────────────
 
 /**
@@ -114,6 +153,9 @@ export function validateReservationDate(dateStr: string): {
  * @param startTime - Waktu mulai "HH:mm"
  * @param endTime - Waktu selesai "HH:mm"
  * @param excludeId - (opsional) ID reservasi yang di-exclude (untuk update)
+ * @param client - (opsional) client transaksi Prisma. Berikan `tx` saat dipanggil di dalam
+ *                 `prisma.$transaction` supaya pengecekan dan penulisan berada dalam
+ *                 satu transaksi (mencegah double booking).
  * @returns true jika ada conflict
  */
 export async function checkConflict(
@@ -121,12 +163,13 @@ export async function checkConflict(
   date: Date,
   startTime: string,
   endTime: string,
-  excludeId?: string
+  excludeId?: string,
+  client: PrismaClient | Prisma.TransactionClient = prisma
 ): Promise<boolean> {
   const startTimeDate = parseTimeToDate(startTime);
   const endTimeDate = parseTimeToDate(endTime);
 
-  const conflicts = await prisma.reservation.findMany({
+  const conflicts = await client.reservation.findMany({
     where: {
       facilityId,
       date,
