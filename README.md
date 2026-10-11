@@ -78,7 +78,7 @@ npm run dev                       # start di port 3000
 
 # 6. Menjalankan Automated Tests (Backend)
 cd backend
-npm test               # Menjalankan 129 unit & integration tests
+npm test               # Menjalankan 150 unit & integration tests (12 suites)
 npm run test:watch     # Mode interaktif (watch)
 npm run test:coverage  # Menampilkan laporan coverage v8
 
@@ -157,7 +157,8 @@ Base URL: `http://localhost:3001/api`
 |--------|----------|------|-----------|
 | GET | `/api/dashboard` | ✅ | Statistik ringkasan (user: personal, admin/officer: global + totalUsers) |
 | GET | `/api/export` | ✅ Admin/Officer | Ekspor data ke **CSV / Excel (.xls) / PDF (.html)** |
-| GET | `/api/metrics` | Opsional | Prometheus metrics scrape endpoint (dilindungi METRICS_TOKEN jika diset) |
+| GET | `/api/metrics` | Opsional | Prometheus metrics scrape endpoint (wajib Bearer METRICS_TOKEN di production) |
+| GET | `/api/test` | ❌ Dev only | Endpoint pengujian daftar user (mengembalikan 404 pada production) |
 
 #### Query params `/api/export`:
 | Param | Nilai | Keterangan |
@@ -218,8 +219,11 @@ CORS dihandle di 3 level (triple-layer) untuk mengatasi berbagai edge case di Ne
 ## 🧪 Pengujian (Testing) & 📊 Monitoring
 
 ### Automated Testing (Vitest)
-Backend dilengkapi dengan 129 pengujian otomatis (unit testing dan integration testing) menggunakan Vitest:
+Backend dilengkapi dengan 150 pengujian otomatis (unit testing dan integration testing) dalam 12 test suite menggunakan Vitest:
 - **Unit Testing**:
+  - `auth-utils.test.ts`: Verifikasi ekstraksi identitas dari Bearer JWT, penolakan header tiruan `x-user-*`, integritas payload dan validasi role yang sah.
+  - `jwt-secret.test.ts`: Validasi pembacaan secret JWT dari environment, fallback untuk development, dan penolakan eksekusi di production jika `JWT_SECRET` belum disetel.
+  - `lead-time.test.ts`: Penegakan batas minimal reservasi 12 jam (MIN_LEAD_HOURS = 12) dan kalkulasi waktu mulai berbasis zona waktu Asia/Jakarta (WIB).
   - `slot-utils.test.ts`: Logika interval 30 menit, rentang operasional 07:00-20:00, validasi hari, konversi waktu Prisma (`@db.Time`).
   - `auth.test.ts`: Hashing password dengan bcrypt (salt 10 rounds), pembuatan dan verifikasi JWT token, integritas payload user.
   - `export-utils.test.ts`: Pembangkitan format CSV, escaping tanda kutip ganda, nested object keys, template print HTML table, proteksi XSS.
@@ -260,14 +264,21 @@ Meskipun detail spesifikasi dan desain sistem dikelola dalam dokumen internal, b
 1. **Alur Reservasi & Manajemen Slot**
    - Waktu operasional dibatasi antara **07:00 – 20:00 WIB**.
    - Sistem slot berjalan dalam kelipatan 30 menit (contoh: 07:00-07:30). Total terdapat 26 slot per hari untuk setiap fasilitas.
-   - Pengecekan konflik dilakukan di backend untuk memastikan tidak ada dua reservasi *approved* yang saling tumpang tindih untuk fasilitas dan waktu yang sama.
+   - Pengecekan konflik slot dijalankan di backend untuk memastikan tidak ada dua reservasi *approved* yang saling tumpang tindih untuk fasilitas dan waktu yang sama.
+   - **Tenggat Pengajuan (Lead Time)**: Reservasi wajib diajukan minimal **12 jam** sebelum waktu mulai kegiatan (`MIN_LEAD_HOURS = 12`). Aturan ini ditegakkan di antarmuka kalender dan pada validasi endpoint backend `POST /api/reservations`.
+   - **Pencegahan Pemesanan Ganda (Concurrency Safety)**: Persetujuan reservasi oleh petugas dijalankan dalam satu transaksi Prisma dengan tingkat isolasi **Serializable** disertai retry otomatis. Hal ini mencegah terjadinya *double-booking* atau kondisi *race condition* (TOCTOU) ketika dua petugas menyetujui jadwal yang sama secara bersamaan.
+   - **Kedaluwarsa Permohonan**: Permohonan reservasi pending yang waktu mulainya telah berlalu tidak dapat disetujui (tombol persetujuan dinonaktifkan di antarmuka dan backend mengembalikan kode status 400).
 
 2. **Role-Based Access Control (RBAC)**
    - **User**: Dapat meminjam fasilitas dan melaporkan kerusakan.
    - **Officer (Petugas)**: Mengurus *approval*/*rejection* reservasi dan memproses laporan kerusakan (mengubah status).
-   - **Admin**: Memiliki akses tak terbatas (CRUD Fasilitas, kelola User/Role, Verifikasi Akun Baru, serta rekap data dan ekspor CSV/Excel/PDF).
-   
-3. **Ekspor Data**
+   - **Admin**: Memiliki akses penuh (CRUD Fasilitas, kelola User/Role, Verifikasi Akun Baru, serta rekap data dan ekspor CSV/Excel/PDF).
+
+3. **Penanganan Laporan Kerusakan & Otomasi Status Fasilitas**
+   - Laporan kerusakan berat (`kerusakan_berat`) yang mulai ditangani oleh petugas (`in_progress`) secara otomatis mengubah status fasilitas menjadi **under_maintenance**.
+   - Ketika laporan kerusakan berat diselesaikan (`resolved`) atau ditolak (`rejected`), fasilitas otomatis dikembalikan menjadi **active** apabila tidak ada laporan kerusakan berat lain yang sedang ditangani. Seluruh siklus ini diproses dalam satu transaksi atomik.
+
+4. **Ekspor Data**
    Sistem mendukung ekspor data Laporan dan Reservasi (difilter berdasarkan tanggal/status) langsung dari API Backend yang mendukung tiga format rendering:
    - **CSV**: Text-based standar.
    - **Excel (.xls)**: XML Spreadsheet untuk kompatibilitas Microsoft Office/Google Sheets.
