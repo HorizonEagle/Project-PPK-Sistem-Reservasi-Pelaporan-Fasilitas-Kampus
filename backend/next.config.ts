@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  serverExternalPackages: ["prom-client"],
 
   // CORS headers — diterapkan oleh Next.js ke SEMUA response termasuk
   // auto-generated OPTIONS preflight, sehingga browser menerima preflight
