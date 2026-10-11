@@ -177,3 +177,48 @@ export function formatCount(n: number): string {
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return String(n);
 }
+
+// ─── Facility Image Helpers ───────────────────────────────────────────────────
+
+export const DEFAULT_FACILITY_IMAGES: Record<string, string> = {
+  classroom: '/facilities/classroom.jpg',
+  laboratory: '/facilities/laboratory.jpg',
+  auditorium: '/facilities/auditorium.jpg',
+  field: '/facilities/field.jpg',
+  equipment: '/facilities/equipment.jpg',
+};
+
+export const DEFAULT_FALLBACK_IMAGE = '/facilities/default.jpg';
+
+/**
+ * Mengembalikan URL gambar fasilitas:
+ * 1. Jika ada foto kustom (imageUrl) -> gunakan foto kustom tersebut
+ * 2. Jika tidak dimasukkan foto apapun -> tetap pertahankan gambar default sesuai tipe fasilitas
+ * 3. Fallback umum: /facilities/default.jpg
+ */
+export function getFacilityImageUrl(
+  facility?: { imageUrl?: string | null; type?: string } | null,
+  typeFallback?: string
+): string {
+  if (facility?.imageUrl && typeof facility.imageUrl === 'string' && facility.imageUrl.trim() !== '') {
+    return facility.imageUrl.trim();
+  }
+  const type = facility?.type || typeFallback || 'classroom';
+  return DEFAULT_FACILITY_IMAGES[type] || DEFAULT_FALLBACK_IMAGE;
+}
+
+/**
+ * Error handler untuk tag <img> agar jika foto gagal dimuat (404/koneksi),
+ * otomatis beralih ke gambar default fasilitas.
+ */
+export function handleFacilityImageError(
+  e: React.SyntheticEvent<HTMLImageElement>,
+  type?: string
+) {
+  const target = e.currentTarget;
+  const fallback = (type && DEFAULT_FACILITY_IMAGES[type]) || DEFAULT_FALLBACK_IMAGE;
+  if (target.src !== fallback) {
+    target.src = fallback;
+  }
+}
+

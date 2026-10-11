@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
         include: {
           user: { select: { id: true, name: true, email: true } },
-          facility: { select: { id: true, name: true, location: true, type: true } },
+          facility: { select: { id: true, name: true, location: true, type: true, imageUrl: true } },
           processor: { select: { id: true, name: true } },
         },
       }),

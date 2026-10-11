@@ -28,7 +28,18 @@ export const createFacilitySchema = z.object({
     .nullable(),
   imageUrl: z
     .string()
-    .url('Format URL tidak valid')
+    .refine(
+      (val) => {
+        if (!val) return true;
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return val.startsWith('/') || val.startsWith('data:image/');
+        }
+      },
+      { message: 'Format URL tidak valid' }
+    )
     .optional()
     .nullable(),
 });
@@ -71,7 +82,18 @@ export const updateFacilitySchema = z.object({
     .optional(),
   imageUrl: z
     .string()
-    .url('Format URL tidak valid')
+    .refine(
+      (val) => {
+        if (!val) return true;
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return val.startsWith('/') || val.startsWith('data:image/');
+        }
+      },
+      { message: 'Format URL tidak valid' }
+    )
     .optional()
     .nullable(),
 });

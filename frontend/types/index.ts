@@ -67,7 +67,7 @@ export interface Reservation {
   createdAt: string;
   updatedAt: string;
   user?: Pick<User, 'id' | 'name' | 'email'>;
-  facility?: Pick<Facility, 'id' | 'name' | 'location' | 'type'>;
+  facility?: Pick<Facility, 'id' | 'name' | 'location' | 'type' | 'imageUrl'>;
   processor?: Pick<User, 'id' | 'name'>;
 }
 
@@ -96,7 +96,7 @@ export interface Report {
   createdAt: string;
   updatedAt: string;
   user?: Pick<User, 'id' | 'name' | 'email'>;
-  facility?: Pick<Facility, 'id' | 'name' | 'location' | 'type'>;
+  facility?: Pick<Facility, 'id' | 'name' | 'location' | 'type' | 'imageUrl'>;
   processor?: Pick<User, 'id' | 'name'>;
 }
 

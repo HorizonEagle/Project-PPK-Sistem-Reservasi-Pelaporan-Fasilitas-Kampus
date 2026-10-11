@@ -22,7 +22,10 @@ import {
   facilityTypeLabel,
   facilityStatusLabel,
   facilityStatusColor,
+  getFacilityImageUrl,
+  handleFacilityImageError,
 } from '@/lib/utils';
+import { FacilityImageUploader } from '@/components/forms/FacilityImageUploader';
 import type { Facility, PaginatedResponse, FacilityType, FacilityStatus } from '@/types';
 
 const FACILITY_TYPE_OPTIONS = [
@@ -63,6 +66,7 @@ export default function AdminFacilitiesPage() {
     location: '',
     capacity: '',
     description: '',
+    imageUrl: '',
   });
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState('');
@@ -149,6 +153,7 @@ export default function AdminFacilitiesPage() {
         location: createForm.location,
         capacity,
         description: createForm.description || undefined,
+        imageUrl: createForm.imageUrl || undefined,
       });
 
       setShowCreateModal(false);
@@ -158,6 +163,7 @@ export default function AdminFacilitiesPage() {
         location: '',
         capacity: '',
         description: '',
+        imageUrl: '',
       });
       setSuccessMessage('Fasilitas berhasil ditambahkan!');
       fetchFacilities();
@@ -256,12 +262,22 @@ export default function AdminFacilitiesPage() {
       ) : (
         <>
           <Table
-            headers={['Fasilitas', 'Tipe', 'Lokasi', 'Kapasitas', 'Status', 'Aksi']}
+            headers={['Foto', 'Fasilitas', 'Tipe', 'Lokasi', 'Kapasitas', 'Status', 'Aksi']}
             isEmpty={!facilities?.data.length}
             emptyMessage="Tidak ada fasilitas ditemukan."
           >
             {facilities?.data.map((fac) => (
               <tr key={fac.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3">
+                  <div className="w-14 h-9 rounded-md overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                    <img
+                      src={getFacilityImageUrl(fac)}
+                      alt={fac.name}
+                      onError={(e) => handleFacilityImageError(e, fac.type)}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-900 text-sm">{fac.name}</div>
                   {fac.description && (
@@ -392,6 +408,15 @@ export default function AdminFacilitiesPage() {
             }
             placeholder="Deskripsi singkat tentang fasilitas..."
             id="create-facility-description"
+          />
+
+          {/* Foto Fasilitas & Pengaturan Overfitting */}
+          <FacilityImageUploader
+            value={createForm.imageUrl}
+            onChange={(url) => setCreateForm({ ...createForm, imageUrl: url })}
+            facilityType={createForm.type}
+            facilityName={createForm.name}
+            onError={(title, msg) => triggerErrorPopup(title, msg)}
           />
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">

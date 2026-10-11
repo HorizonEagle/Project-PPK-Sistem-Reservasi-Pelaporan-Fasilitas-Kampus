@@ -10,7 +10,11 @@ import {
 } from '@/lib/api';
 import { SlotGrid, DatePicker, LiveClockBanner } from '@/components/calendar';
 import { Card, Button, Alert, Textarea, Spinner, Modal } from '@/components/ui';
-import { facilityTypeLabel } from '@/lib/utils';
+import {
+  facilityTypeLabel,
+  getFacilityImageUrl,
+  handleFacilityImageError,
+} from '@/lib/utils';
 import type { Facility, PaginatedResponse } from '@/types';
 
 // ─── Slot Selection Logic ─────────────────────────────────────────────────────
@@ -19,18 +23,6 @@ function timeToMinutes(time: string): number {
   if (!time) return 0;
   const [h, m] = time.split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
-}
-
-const facilityImages: Record<string, string> = {
-  classroom: '/facilities/classroom.jpg',
-  laboratory: '/facilities/laboratory.jpg',
-  auditorium: '/facilities/auditorium.jpg',
-  field: '/facilities/field.jpg',
-  equipment: '/facilities/equipment.jpg',
-};
-
-function getFacilityImage(type: string): string {
-  return facilityImages[type] || '/facilities/default.jpg';
 }
 
 // ─── ReservationForm Component ────────────────────────────────────────────────
@@ -319,8 +311,9 @@ export default function ReservationForm({ preselectedFacilityId }: ReservationFo
                   {/* Horizontal Image Banner */}
                   <div className="relative w-full aspect-[16/9] overflow-hidden bg-canvas">
                     <img
-                      src={getFacilityImage(fac.type)}
+                      src={getFacilityImageUrl(fac)}
                       alt={fac.name}
+                      onError={(e) => handleFacilityImageError(e, fac.type)}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -426,8 +419,9 @@ export default function ReservationForm({ preselectedFacilityId }: ReservationFo
               <div className="mb-4 p-3 bg-primary-50/80 rounded-xl border border-primary-200/80 text-sm flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <img
-                    src={getFacilityImage(selectedFacility.type)}
+                    src={getFacilityImageUrl(selectedFacility)}
                     alt={selectedFacility.name}
+                    onError={(e) => handleFacilityImageError(e, selectedFacility.type)}
                     className="w-14 h-10 rounded-lg object-cover border border-primary-200 flex-shrink-0"
                   />
                   <div className="min-w-0">

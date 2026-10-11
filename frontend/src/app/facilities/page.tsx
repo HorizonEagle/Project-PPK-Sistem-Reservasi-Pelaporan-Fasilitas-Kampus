@@ -4,7 +4,13 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { facilitiesApi } from '@/lib/api';
 import { Card, Badge, Spinner, Input, Select, Pagination, EmptyState } from '@/components/ui';
-import { facilityTypeLabel, facilityStatusLabel, facilityStatusColor } from '@/lib/utils';
+import {
+  facilityTypeLabel,
+  facilityStatusLabel,
+  facilityStatusColor,
+  getFacilityImageUrl,
+  handleFacilityImageError,
+} from '@/lib/utils';
 import type { Facility, PaginatedResponse } from '@/types';
 
 const FACILITY_TYPE_OPTIONS = [
@@ -63,16 +69,6 @@ export default function FacilitiesPage() {
     const timer = setTimeout(() => setSearch(searchInput), 400);
     return () => clearTimeout(timer);
   }, [searchInput]);
-
-  // Facility image helper
-  const facilityImages: Record<string, string> = {
-    classroom: '/facilities/classroom.jpg',
-    laboratory: '/facilities/laboratory.jpg',
-    auditorium: '/facilities/auditorium.jpg',
-    field: '/facilities/field.jpg',
-    equipment: '/facilities/equipment.jpg',
-  };
-  const getFacilityImage = (t: string) => facilityImages[t] || '/facilities/default.jpg';
 
   return (
     <div className="min-h-[80vh]">
@@ -152,8 +148,9 @@ export default function FacilitiesPage() {
                     {/* Visual header with horizontal photo */}
                     <div className="relative w-full aspect-[16/9] overflow-hidden bg-canvas">
                       <img
-                        src={getFacilityImage(facility.type)}
+                        src={getFacilityImageUrl(facility)}
                         alt={facility.name}
+                        onError={(e) => handleFacilityImageError(e, facility.type)}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />

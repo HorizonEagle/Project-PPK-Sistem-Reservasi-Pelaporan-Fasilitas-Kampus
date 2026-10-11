@@ -21,6 +21,7 @@ import {
   facilityStatusLabel,
   facilityStatusColor,
 } from '@/lib/utils';
+import { FacilityImageUploader } from '@/components/forms/FacilityImageUploader';
 import type { Facility, FacilityType, FacilityStatus } from '@/types';
 
 export default function EditFacilityPage({
@@ -46,6 +47,7 @@ export default function EditFacilityPage({
     capacity: '',
     description: '',
     status: '' as FacilityStatus,
+    imageUrl: '',
   });
 
   useEffect(() => {
@@ -62,6 +64,7 @@ export default function EditFacilityPage({
           capacity: String(f.capacity),
           description: f.description || '',
           status: f.status,
+          imageUrl: f.imageUrl || '',
         });
       })
       .catch((err) => {
@@ -109,6 +112,7 @@ export default function EditFacilityPage({
         capacity,
         description: form.description || undefined,
         status: form.status,
+        imageUrl: form.imageUrl || undefined,
       });
 
       setSuccess('Fasilitas berhasil diperbarui!');
@@ -123,6 +127,7 @@ export default function EditFacilityPage({
               capacity,
               description: form.description || undefined,
               status: form.status,
+              imageUrl: form.imageUrl || undefined,
             }
           : null
       );
@@ -279,6 +284,15 @@ export default function EditFacilityPage({
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="Deskripsi singkat tentang fasilitas..."
             id="edit-facility-description"
+          />
+
+          {/* Foto Fasilitas & Pengaturan Overfitting */}
+          <FacilityImageUploader
+            value={form.imageUrl}
+            onChange={(url) => setForm({ ...form, imageUrl: url })}
+            facilityType={form.type}
+            facilityName={form.name}
+            onError={(title, msg) => triggerErrorPopup(title, msg)}
           />
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">

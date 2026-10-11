@@ -71,7 +71,7 @@ export default function PetugasLayout({ children }: { children: React.ReactNode 
   if (user?.role !== 'officer') return null;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-canvas">
+    <div className="min-h-[calc(100vh-4rem)]">
       {/* Mobile Backdrop */}
       {mobileSidebarOpen && (
         <div
