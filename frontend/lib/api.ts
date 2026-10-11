@@ -13,6 +13,27 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+// ─── Custom Errors ───────────────────────────────────────────────────────────
+
+export class ConnectionError extends Error {
+  constructor(message = 'Gagal terhubung ke server. Periksa koneksi internet Anda atau pastikan server backend aktif.') {
+    super(message);
+    this.name = 'ConnectionError';
+  }
+}
+
+export class ApiRequestError extends Error {
+  status: number;
+  details?: Record<string, string[]>;
+
+  constructor(message: string, status: number, details?: Record<string, string[]>) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
 // ─── HTTP Client ──────────────────────────────────────────────────────────────
 
 class ApiClient {
@@ -43,75 +64,131 @@ class ApiClient {
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
-    const data = await response.json();
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new ApiRequestError(
+        `Respons server tidak valid (Status ${response.status})`,
+        response.status
+      );
+    }
 
     if (!response.ok) {
-      const error = data as ApiError;
-      throw new Error(error.error || `HTTP Error: ${response.status}`);
+      const errorObj = data as ApiError & { details?: Record<string, string[]> };
+      let message = errorObj.error || `HTTP Error: ${response.status}`;
+      if (errorObj.details && typeof errorObj.details === 'object') {
+        const detailsList = Object.values(errorObj.details).flat().filter(Boolean);
+        if (detailsList.length > 0) {
+          message += `: ${detailsList.join(', ')}`;
+        }
+      }
+      throw new ApiRequestError(message, response.status, errorObj.details);
     }
 
     return data as T;
   }
 
-  async get<T>(path: string, params?: Record<string, string>, auth = true): Promise<T> {
-    const base = this.baseUrl.startsWith('http')
-      ? this.baseUrl
-      : `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${this.baseUrl}`;
-    const url = new URL(`${base}${path}`);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          url.searchParams.set(key, value);
-        }
-      });
+  private wrapFetchError(err: unknown): never {
+    if (err instanceof ApiRequestError || err instanceof ConnectionError) {
+      throw err;
     }
+    if (err instanceof Error) {
+      const msg = err.message.toLowerCase();
+      const isNetwork =
+        err.name === 'TypeError' ||
+        msg.includes('fetch') ||
+        msg.includes('network') ||
+        msg.includes('failed to fetch') ||
+        msg.includes('networkerror') ||
+        msg.includes('load failed') ||
+        msg.includes('connection');
 
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: this.getHeaders(auth),
-      credentials: 'include',
-    });
+      if (isNetwork) {
+        throw new ConnectionError(
+          'Gagal terhubung ke server. Periksa koneksi internet Anda atau pastikan server backend berjalan di port 3001.'
+        );
+      }
+      throw err;
+    }
+    throw new ConnectionError('Gagal terhubung ke server akibat gangguan koneksi jaringan.');
+  }
 
-    return this.handleResponse<T>(response);
+  async get<T>(path: string, params?: Record<string, string>, auth = true): Promise<T> {
+    try {
+      const base = this.baseUrl.startsWith('http')
+        ? this.baseUrl
+        : `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${this.baseUrl}`;
+      const url = new URL(`${base}${path}`);
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== '') {
+            url.searchParams.set(key, value);
+          }
+        });
+      }
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: this.getHeaders(auth),
+        credentials: 'include',
+      });
+
+      return await this.handleResponse<T>(response);
+    } catch (err) {
+      this.wrapFetchError(err);
+    }
   }
 
   async post<T>(path: string, body?: unknown, auth = true): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers: this.getHeaders(auth),
-      credentials: 'include',
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}${path}`, {
+        method: 'POST',
+        headers: this.getHeaders(auth),
+        credentials: 'include',
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    return this.handleResponse<T>(response);
+      return await this.handleResponse<T>(response);
+    } catch (err) {
+      this.wrapFetchError(err);
+    }
   }
 
   async patch<T>(path: string, body?: unknown, auth = true): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'PATCH',
-      headers: this.getHeaders(auth),
-      credentials: 'include',
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}${path}`, {
+        method: 'PATCH',
+        headers: this.getHeaders(auth),
+        credentials: 'include',
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    return this.handleResponse<T>(response);
+      return await this.handleResponse<T>(response);
+    } catch (err) {
+      this.wrapFetchError(err);
+    }
   }
 
   async postFormData<T>(path: string, formData: FormData, auth = true): Promise<T> {
-    const headers: HeadersInit = {};
-    if (auth) {
-      const token = this.getToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const headers: HeadersInit = {};
+      if (auth) {
+        const token = this.getToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}${path}`, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: formData,
+      });
+
+      return await this.handleResponse<T>(response);
+    } catch (err) {
+      this.wrapFetchError(err);
     }
-
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers,
-      credentials: 'include',
-      body: formData,
-    });
-
-    return this.handleResponse<T>(response);
   }
 }
 

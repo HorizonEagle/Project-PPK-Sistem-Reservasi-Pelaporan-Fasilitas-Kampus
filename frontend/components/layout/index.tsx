@@ -42,21 +42,28 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo with SVG */}
+          {/* Logo with FASKAM Image */}
           <Link
             href="/"
             className={`flex items-center gap-2.5 font-bold font-heading text-lg group transition-colors ${
               isAuthPage ? 'text-white drop-shadow-md' : 'text-ink'
             }`}
           >
-            <div className="w-9 h-9 rounded-xl bg-primary-600 text-white flex items-center justify-center shadow-md group-hover:bg-primary-700 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-md group-hover:shadow-lg transition-all overflow-hidden p-0.5 border border-line/40">
+              <img
+                src="/Images/Faskam-logo.png"
+                alt="Logo FASKAM"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="tracking-tight font-bold">
-              Fasilitas<span className={isAuthPage ? 'text-gold' : 'text-primary-600'}>Kampus</span>
-            </span>
+            <div className="flex flex-col text-left">
+              <span className="tracking-tight font-bold font-heading text-base leading-tight">
+                FASKAM
+              </span>
+              <span className={`text-[10px] font-medium leading-none ${isAuthPage ? 'text-white/80' : 'text-ink-muted'}`}>
+                Fasilitas Kampus
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -279,14 +286,16 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary-600 text-white flex items-center justify-center">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center overflow-hidden p-0.5 border border-line shadow-xs">
+              <img
+                src="/Images/Faskam-logo.png"
+                alt="Logo FASKAM"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <p className="font-bold font-heading text-sm text-ink">FasilitasKampus</p>
-              <p className="text-xs text-ink-muted">Sistem Reservasi & Pelaporan Terpadu</p>
+              <p className="font-bold font-heading text-sm text-ink">FASKAM</p>
+              <p className="text-xs text-ink-muted">Fasilitas Kampus</p>
             </div>
           </div>
 
@@ -306,7 +315,7 @@ export function Footer() {
           </div>
 
           <p className="text-xs text-ink-muted">
-            &copy; {new Date().getFullYear()} FasilitasKampus. Hak Cipta Dilindungi.
+            &copy; {new Date().getFullYear()} FASKAM — Fasilitas Kampus. Hak Cipta Dilindungi.
           </p>
         </div>
       </div>

@@ -149,6 +149,7 @@ interface SlotGridProps {
   selectable?: boolean;
   selectedStart?: string;
   selectedEnd?: string;
+  onError?: (err: Error) => void;
 }
 
 export function SlotGrid({
@@ -158,6 +159,7 @@ export function SlotGrid({
   selectable = false,
   selectedStart,
   selectedEnd,
+  onError,
 }: SlotGridProps) {
   const [slots, setSlots] = useState<SlotAvailability[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -185,12 +187,14 @@ export function SlotGrid({
         setSlots(res.data);
       })
       .catch((err) => {
-        setError(err.message || 'Gagal memuat jadwal');
+        const errorObj = err instanceof Error ? err : new Error('Gagal memuat jadwal');
+        setError(errorObj.message);
+        onError?.(errorObj);
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [facilityId, selectedDate]);
+  }, [facilityId, selectedDate, onError]);
 
   // ─── Determine which slots are blocked by time rules ──────────────────────
   // A slot is "time-blocked" when:

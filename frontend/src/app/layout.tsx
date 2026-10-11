@@ -18,12 +18,17 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'FasilitasKampus — Sistem Reservasi & Pelaporan',
-    template: '%s | FasilitasKampus',
+    default: 'FASKAM — Fasilitas Kampus',
+    template: '%s | FASKAM',
   },
   description:
-    'Sistem terpusat untuk reservasi fasilitas kampus dan pelaporan kerusakan. Mudah, cepat, dan transparan.',
-  keywords: ['reservasi', 'fasilitas', 'kampus', 'laboratorium', 'ruang kuliah'],
+    'FASKAM — Fasilitas Kampus. Sistem terpusat untuk reservasi fasilitas kampus dan pelaporan kerusakan. Mudah, cepat, dan transparan.',
+  keywords: ['FASKAM', 'fasilitas kampus', 'reservasi', 'fasilitas', 'kampus', 'laboratorium', 'ruang kuliah'],
+  icons: {
+    icon: '/Images/Faskam-logo.png',
+    shortcut: '/Images/Faskam-logo.png',
+    apple: '/Images/Faskam-logo.png',
+  },
 };
 
 export default function RootLayout({

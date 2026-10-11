@@ -187,7 +187,7 @@ export default function ReportDetailPage() {
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
               Deskripsi
             </label>
-            <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
+            <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-gray-50 p-3 rounded-lg leading-relaxed">
               {report.description}
             </p>
           </div>
@@ -241,7 +241,7 @@ export default function ReportDetailPage() {
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Catatan Resolusi
                   </label>
-                  <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-green-50 p-3 rounded-lg border border-green-100">
+                  <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-green-50 p-3 rounded-lg border border-green-100 leading-relaxed">
                     {report.resolutionNote}
                   </p>
                 </div>

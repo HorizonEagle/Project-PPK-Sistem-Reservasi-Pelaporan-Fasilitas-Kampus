@@ -1,6 +1,8 @@
 'use client';
 
+import { Suspense } from 'react';
 import ReservationForm from '@/components/forms/ReservationForm';
+import { Spinner } from '@/components/ui';
 
 export default function NewReservationPage() {
   return (
@@ -14,7 +16,15 @@ export default function NewReservationPage() {
       </div>
 
       {/* Form */}
-      <ReservationForm />
+      <Suspense
+        fallback={
+          <div className="flex justify-center py-16">
+            <Spinner size="lg" />
+          </div>
+        }
+      >
+        <ReservationForm />
+      </Suspense>
     </div>
   );
 }

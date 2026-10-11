@@ -167,8 +167,8 @@ export default function PetugasReportsPage() {
                     {reportCategoryLabel(report.category)}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 max-w-xs truncate" title={report.description}>
+                <td className="px-6 py-4 max-w-xs sm:max-w-sm md:max-w-md">
+                  <div className="text-sm text-gray-900 break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed" title={report.description}>
                     {report.description}
                   </div>
                   {report.photoUrl && (
@@ -250,8 +250,8 @@ export default function PetugasReportsPage() {
       >
         <div className="space-y-4">
           <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <p className="text-sm font-medium text-gray-900">{selectedReport?.facility?.name}</p>
-            <p className="text-xs text-gray-500 mt-1">{selectedReport?.description}</p>
+            <p className="text-sm font-medium text-gray-900 break-words [overflow-wrap:anywhere]">{selectedReport?.facility?.name}</p>
+            <p className="text-xs text-gray-500 mt-1 break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-relaxed">{selectedReport?.description}</p>
           </div>
 
           {actionType === 'in_progress' && (
