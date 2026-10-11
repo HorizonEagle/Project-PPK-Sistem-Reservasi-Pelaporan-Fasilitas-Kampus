@@ -739,3 +739,41 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
     </nav>
   );
 }
+
+// ─── Error Modal & Hook ───────────────────────────────────────────────────────
+
+export { ErrorModal } from './ErrorModal';
+export type { ErrorModalProps } from './ErrorModal';
+
+export function useErrorPopup() {
+  const [errorPopup, setErrorPopup] = React.useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    isConnectionError: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    isConnectionError: false,
+  });
+
+  const triggerErrorPopup = React.useCallback(
+    (title: string, message: string, isConnection = false) => {
+      setErrorPopup({
+        isOpen: true,
+        title,
+        message,
+        isConnectionError: isConnection,
+      });
+    },
+    []
+  );
+
+  const closeErrorPopup = React.useCallback(() => {
+    setErrorPopup((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  return { errorPopup, triggerErrorPopup, closeErrorPopup };
+}
+

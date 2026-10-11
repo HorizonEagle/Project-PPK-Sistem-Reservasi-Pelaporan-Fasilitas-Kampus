@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛠️ Backend API — Sistem Reservasi & Pelaporan Fasilitas Kampus
 
-## Getting Started
+Server API berbasis Next.js 16 (Route Handlers) yang beroperasi pada port `3001` sebagai headless backend untuk melayani aplikasi reservasi fasilitas kampus dan pelaporan kerusakan.
 
-First, run the development server:
+## 📋 Fitur & Modul Utama
+- **Autentikasi & RBAC**: Registrasi, login dengan JWT (`jose`), hashing password (`bcryptjs`), verifikasi akun admin, dan proteksi role (`user`, `officer`, `admin`).
+- **Fasilitas**: Manajemen katalog fasilitas, kapasitas, tipe, dan pengecekan jadwal ketersediaan slot.
+- **Reservasi**: Sistem slot waktu 30 menit (07:00-20:00 WIB), deteksi tumpang tindih waktu (conflict checking), approval/rejection oleh petugas.
+- **Pelaporan Kerusakan**: Pelaporan fasilitas rusak, update status penanganan, integrasi otomatis status fasilitas (`under_maintenance`).
+- **Ekspor Data**: Ekspor rekapitulasi data ke format CSV, Excel (.xls), dan PDF printer-friendly (.html).
+- **Monitoring Prometheus**: Endpoint scraping `/api/metrics` yang mencakup metrik sistem, metrik HTTP latency, dan database gauges.
+- **Automated Testing**: 129 pengujian unit & integrasi otomatis menggunakan Vitest.
+
+## 📜 Skrip yang Tersedia
 
 ```bash
+# Menjalankan server development di port 3001
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Menjalankan automated test suite (Vitest)
+npm test
+
+# Menjalankan test suite dengan mode watch
+npm run test:watch
+
+# Menjalankan test suite dengan laporan coverage V8
+npm run test:coverage
+
+# Linting kode
+npm run lint
+
+# Build production
+npm run build
+
+# Menjalankan server production di port 3001
+npm run start
+
+# Database & Prisma
+npm run db:generate    # Generate Prisma Client
+npm run db:migrate     # Jalankan migrasi schema
+npm run db:seed        # Jalankan seeder akun demo & fasilitas awal
+npm run db:reset       # Reset database dan jalankan seeder
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🧪 Struktur Pengujian (`__tests__/`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+__tests__/
+├── unit/
+│   ├── slot-utils.test.ts             # Logika 26 slot 30 menit, jam operasional, date parsing
+│   ├── auth.test.ts                   # Password bcrypt hashing & JWT token verification
+│   ├── export-utils.test.ts           # Format CSV, HTML printer table, sanitasi XSS
+│   ├── validators-auth.test.ts        # Skema Zod registrasi, login, pembuatan akun
+│   ├── validators-facility.test.ts    # Skema Zod fasilitas & filter jadwal
+│   ├── validators-reservation.test.ts # Skema Zod reservasi & alasan penolakan
+│   └── validators-report.test.ts      # Skema Zod pelaporan & catatan resolusi
+└── integration/
+    ├── auth-routes.test.ts            # Route handler login & register (mock Prisma)
+    └── metrics.test.ts                # Scrape endpoint Prometheus & withMetrics wrapper
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📊 Metrik Prometheus (`/api/metrics`)
+Endpoint `GET /api/metrics` mengekspos data metrik berikut:
+- `http_requests_total`: Total hit HTTP API per method, route, dan status kode.
+- `http_request_duration_seconds`: Histogram latensi per route.
+- `campus_db_up`: Status konektivitas database (1 jika terhubung, 0 jika gagal).
+- `campus_users`: Jumlah user per status (active, pending, rejected).
+- `campus_facilities`: Jumlah fasilitas per status (active, inactive, under_maintenance).
+- `campus_reservations`: Jumlah reservasi per status (pending, approved, rejected, cancelled).
+- `campus_reports`: Jumlah laporan per status (new_report, in_progress, resolved, rejected).
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Untuk konfigurasi mendalam, silakan baca [BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md).

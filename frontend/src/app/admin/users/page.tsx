@@ -13,6 +13,8 @@ import {
   Alert,
   Pagination,
   EmptyState,
+  ErrorModal,
+  useErrorPopup,
 } from '@/components/ui';
 import {
   userRoleLabel,
@@ -24,6 +26,7 @@ import {
 import type { User, PaginatedResponse } from '@/types';
 
 export default function AdminUsersPage() {
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
   const [data, setData] = useState<PaginatedResponse<User> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -50,11 +53,22 @@ export default function AdminUsersPage() {
       } as Record<string, string>);
       setData(result);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      if (isConn) {
+        triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [search, filterRole, filterStatus, page]);
+  }, [search, filterRole, filterStatus, page, triggerErrorPopup]);
 
   useEffect(() => {
     fetchUsers();
@@ -71,7 +85,20 @@ export default function AdminUsersPage() {
       );
       fetchUsers();
     } catch (err) {
-      setError(getErrorMessage(err));
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      triggerErrorPopup(
+        isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Verifikasi Akun',
+        msg,
+        isConn
+      );
     } finally {
       setVerifyingId(null);
     }
@@ -241,6 +268,14 @@ export default function AdminUsersPage() {
           )}
         </>
       )}
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

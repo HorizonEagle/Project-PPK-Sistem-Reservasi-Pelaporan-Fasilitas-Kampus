@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { reportsApi, facilitiesApi } from '@/lib/api';
-import { Button, Card, Alert, Select, Textarea, Input } from '@/components/ui';
+import { Button, Card, Alert, Select, Textarea, Input, ErrorModal, useErrorPopup } from '@/components/ui';
 import type { Facility, PaginatedResponse } from '@/types';
 
 const categoryOptions = [
@@ -28,19 +28,51 @@ export default function NewReportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   useEffect(() => {
     facilitiesApi
       .list({ limit: '100' })
       .then((res: PaginatedResponse<Facility>) => setFacilities(res.data))
-      .catch((err) => setError(`Gagal memuat fasilitas: ${err.message}`))
+      .catch((err) => {
+        const isConn =
+          err instanceof Error &&
+          (err.name === 'ConnectionError' ||
+            err.message.toLowerCase().includes('terhubung') ||
+            err.message.toLowerCase().includes('koneksi') ||
+            err.message.toLowerCase().includes('network'));
+        const msg = `Gagal memuat fasilitas: ${err.message}`;
+        setError(msg);
+        triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Memuat Fasilitas', msg, isConn);
+      })
       .finally(() => setIsLoadingFacilities(false));
-  }, []);
+  }, [triggerErrorPopup]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setFieldErrors({});
+
+    // Validasi input
+    if (!facilityId) {
+      const msg = 'Silakan pilih fasilitas yang ingin dilaporkan.';
+      setError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+    if (!category) {
+      const msg = 'Silakan pilih kategori laporan.';
+      setError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+    if (description.trim().length < 10) {
+      const msg = 'Deskripsi masalah minimal 10 karakter agar petugas memahami detail kerusakan.';
+      setError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -53,11 +85,17 @@ export default function NewReportPage() {
       });
       router.push('/dashboard/reports');
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Gagal membuat laporan. Silakan coba lagi.');
-      }
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal membuat laporan. Silakan coba lagi.';
+      const title = isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Mengirim Laporan';
+      setError(msg);
+      triggerErrorPopup(title, msg, isConn);
     } finally {
       setIsSubmitting(false);
     }
@@ -168,6 +206,15 @@ export default function NewReportPage() {
           </div>
         </form>
       </Card>
+
+      {/* Modal Error Popup */}
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ import {
   Textarea,
   Table,
   Select,
+  ErrorModal,
+  useErrorPopup,
 } from '@/components/ui';
 import type { PaginatedResponse, Report } from '@/types';
 import {
@@ -23,6 +25,7 @@ import {
 } from '@/lib/utils';
 
 export default function PetugasReportsPage() {
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
   const [reports, setReports] = useState<PaginatedResponse<Report> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,7 +52,20 @@ export default function PetugasReportsPage() {
     reportsApi
       .list(params)
       .then((res) => setReports(res))
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        const isConn =
+          err instanceof Error &&
+          (err.name === 'ConnectionError' ||
+            err.message.toLowerCase().includes('terhubung') ||
+            err.message.toLowerCase().includes('koneksi') ||
+            err.message.toLowerCase().includes('network') ||
+            err.message.toLowerCase().includes('failed to fetch'));
+        const msg = err instanceof Error ? err.message : 'Gagal memuat laporan.';
+        setError(msg);
+        if (isConn) {
+          triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+        }
+      })
       .finally(() => setIsLoading(false));
   };
 
@@ -74,7 +90,9 @@ export default function PetugasReportsPage() {
     setActionError('');
 
     if ((actionType === 'resolved' || actionType === 'rejected') && !resolutionNote.trim()) {
-      setActionError('Catatan resolusi/penolakan wajib diisi');
+      const msg = 'Catatan resolusi atau alasan penolakan wajib diisi.';
+      setActionError(msg);
+      triggerErrorPopup('Validasi Input', msg);
       return;
     }
 
@@ -90,7 +108,16 @@ export default function PetugasReportsPage() {
       setActionType(null);
       fetchReports();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses laporan');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses laporan.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Memproses Laporan', msg, isConn);
     } finally {
       setIsSubmitting(false);
     }
@@ -302,6 +329,14 @@ export default function PetugasReportsPage() {
           </div>
         </div>
       </Modal>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

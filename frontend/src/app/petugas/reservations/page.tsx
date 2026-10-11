@@ -14,6 +14,8 @@ import {
   Modal,
   Textarea,
   EmptyState,
+  ErrorModal,
+  useErrorPopup,
 } from '@/components/ui';
 import {
   reservationStatusLabel,
@@ -35,6 +37,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function PetugasReservationsPage() {
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
   const [reservations, setReservations] = useState<PaginatedResponse<Reservation> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,11 +71,22 @@ export default function PetugasReservationsPage() {
       const res = await reservationsApi.list(params);
       setReservations(res);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat reservasi');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal memuat reservasi.';
+      setError(msg);
+      if (isConn) {
+        triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [status, page]);
+  }, [status, page, triggerErrorPopup]);
 
   useEffect(() => {
     fetchReservations();
@@ -105,9 +119,16 @@ export default function PetugasReservationsPage() {
       );
       fetchReservations();
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Gagal menyetujui reservasi'
-      );
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal menyetujui reservasi.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Menyetujui Reservasi', msg, isConn);
     } finally {
       setActionLoading(false);
     }
@@ -115,6 +136,13 @@ export default function PetugasReservationsPage() {
 
   const handleReject = async () => {
     if (!selectedReservation) return;
+    if (!rejectionReason.trim()) {
+      const msg = 'Alasan penolakan wajib diisi agar pemohon mengetahui penyebabnya.';
+      setActionError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+
     setActionLoading(true);
     setActionError('');
 
@@ -129,9 +157,16 @@ export default function PetugasReservationsPage() {
       setSelectedReservation(null);
       fetchReservations();
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Gagal menolak reservasi'
-      );
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal menolak reservasi.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Menolak Reservasi', msg, isConn);
     } finally {
       setActionLoading(false);
     }
@@ -139,6 +174,13 @@ export default function PetugasReservationsPage() {
 
   const handleCancelByOfficer = async () => {
     if (!selectedReservation) return;
+    if (cancellationReason.trim().length < 5) {
+      const msg = 'Alasan pembatalan minimal 5 karakter.';
+      setActionError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+
     setActionLoading(true);
     setActionError('');
 
@@ -153,9 +195,16 @@ export default function PetugasReservationsPage() {
       setSelectedReservation(null);
       fetchReservations();
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Gagal membatalkan reservasi'
-      );
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal membatalkan reservasi.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Membatalkan Reservasi', msg, isConn);
     } finally {
       setActionLoading(false);
     }
@@ -587,6 +636,14 @@ export default function PetugasReservationsPage() {
           </div>
         )}
       </Modal>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

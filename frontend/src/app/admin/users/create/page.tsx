@@ -4,10 +4,11 @@ import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usersApi } from '@/lib/api';
-import { Input, Button, Alert, Select, Card } from '@/components/ui';
+import { Input, Button, Alert, Select, Card, ErrorModal, useErrorPopup } from '@/components/ui';
 
 export default function CreateUserPage() {
   const router = useRouter();
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   const [form, setForm] = useState({
     name: '',
@@ -39,14 +40,28 @@ export default function CreateUserPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setServerError('');
-    if (!validate()) return;
+    if (!validate()) {
+      const msg = 'Harap periksa form akun. Semua data wajib diisi dengan format yang benar.';
+      setServerError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
 
     setIsLoading(true);
     try {
       await usersApi.create(form);
       router.push('/admin/users?created=1');
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Gagal membuat akun.');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal membuat akun.';
+      setServerError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Membuat Akun', msg, isConn);
     } finally {
       setIsLoading(false);
     }
@@ -147,6 +162,14 @@ export default function CreateUserPage() {
           </div>
         </form>
       </Card>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

@@ -40,3 +40,7 @@ public/uploads/*
 
 SYSTEM_DESIGN.md
 master_prompt2.md
+BACKEND_ARCHITECTURE.md
+CATATAN_PRESENTASI_BACKEND.md
+.claude/
+**/.claude/

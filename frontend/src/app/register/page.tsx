@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
-import { Input, Button, Alert, Select } from '@/components/ui';
+import { Input, Button, Alert, Select, ErrorModal, useErrorPopup } from '@/components/ui';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -22,6 +22,7 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   // Jika sudah login, redirect ke dashboard
   if (!authLoading && isAuthenticated && user) {
@@ -48,14 +49,19 @@ export default function RegisterPage() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setServerError('');
 
-    if (!validate()) return;
+    const validationErrors = validate();
+    const errorList = Object.values(validationErrors);
+    if (errorList.length > 0) {
+      triggerErrorPopup('Validasi Pendaftaran', errorList[0]);
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -66,7 +72,17 @@ export default function RegisterPage() {
       });
       setSuccess(true);
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Registrasi gagal. Coba lagi.');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Registrasi gagal. Coba lagi.';
+      const title = isConn ? 'Gangguan Koneksi Jaringan' : 'Pendaftaran Gagal';
+      setServerError(msg);
+      triggerErrorPopup(title, msg, isConn);
     } finally {
       setIsLoading(false);
     }
@@ -245,6 +261,15 @@ export default function RegisterPage() {
             </p>
           </div>
         </div>
+
+        {/* Modal Error Popup */}
+        <ErrorModal
+          isOpen={errorPopup.isOpen}
+          onClose={closeErrorPopup}
+          title={errorPopup.title}
+          message={errorPopup.message}
+          isConnectionError={errorPopup.isConnectionError}
+        />
       </div>
     </div>
   );

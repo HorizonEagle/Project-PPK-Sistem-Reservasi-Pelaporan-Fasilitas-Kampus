@@ -4,7 +4,7 @@ import { useState, FormEvent, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Input, Button, Alert } from '@/components/ui';
+import { Input, Button, Alert, ErrorModal, useErrorPopup } from '@/components/ui';
 
 function LoginContent() {
   const { login, isAuthenticated, user, isLoading: authLoading } = useAuth();
@@ -16,6 +16,7 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   // Jika sudah login, redirect ke dashboard sesuai role
   if (!authLoading && isAuthenticated && user) {
@@ -35,7 +36,9 @@ function LoginContent() {
 
     // Client-side validation
     if (!email || !password) {
-      setError('Email dan kata sandi wajib diisi.');
+      const msg = 'Email dan kata sandi wajib diisi.';
+      setError(msg);
+      triggerErrorPopup('Validasi Formulir', msg);
       return;
     }
 
@@ -45,7 +48,17 @@ function LoginContent() {
       router.push(redirectTo || '/');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login gagal. Coba lagi.');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Login gagal. Coba lagi.';
+      const title = isConn ? 'Gangguan Koneksi Jaringan' : 'Login Gagal';
+      setError(msg);
+      triggerErrorPopup(title, msg, isConn);
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +177,15 @@ function LoginContent() {
             ))}
           </div>
         </div>
+
+        {/* Modal Error Popup */}
+        <ErrorModal
+          isOpen={errorPopup.isOpen}
+          onClose={closeErrorPopup}
+          title={errorPopup.title}
+          message={errorPopup.message}
+          isConnectionError={errorPopup.isConnectionError}
+        />
       </div>
     </div>
   );

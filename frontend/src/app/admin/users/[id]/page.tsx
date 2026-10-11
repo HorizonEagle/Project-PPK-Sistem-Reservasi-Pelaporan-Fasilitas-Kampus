@@ -4,13 +4,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usersApi } from '@/lib/api';
-import { Card, Button, Spinner, Alert, Badge, Select } from '@/components/ui';
+import { Card, Button, Spinner, Alert, Badge, Select, ErrorModal, useErrorPopup } from '@/components/ui';
 import { formatDateTime, userStatusColor, userStatusLabel, userRoleLabel } from '@/lib/utils';
 import type { User, UserRole } from '@/types';
 
 export default function AdminUserDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,11 +31,22 @@ export default function AdminUserDetailPage() {
       setUser(res.data);
       setEditRole(res.data.role);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat detail pengguna');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal memuat detail pengguna.';
+      setError(msg);
+      if (isConn) {
+        triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, triggerErrorPopup]);
 
   useEffect(() => {
     fetchUser();
@@ -49,7 +61,16 @@ export default function AdminUserDetailPage() {
       setSuccessMessage(action === 'approve' ? 'Pengguna berhasil diverifikasi.' : 'Pengguna ditolak.');
       fetchUser();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Gagal memverifikasi pengguna');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal memverifikasi pengguna.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Verifikasi Pengguna', msg, isConn);
     } finally {
       setIsActionLoading(false);
     }
@@ -64,7 +85,16 @@ export default function AdminUserDetailPage() {
       setSuccessMessage('Peran pengguna berhasil diperbarui.');
       fetchUser();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Gagal mengubah peran pengguna');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal mengubah peran pengguna.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Mengubah Peran', msg, isConn);
     } finally {
       setIsActionLoading(false);
     }
@@ -85,6 +115,13 @@ export default function AdminUserDetailPage() {
           ← Kembali ke Daftar Pengguna
         </Link>
         <Alert type="error">{error || 'Pengguna tidak ditemukan'}</Alert>
+        <ErrorModal
+          isOpen={errorPopup.isOpen}
+          onClose={closeErrorPopup}
+          title={errorPopup.title}
+          message={errorPopup.message}
+          isConnectionError={errorPopup.isConnectionError}
+        />
       </div>
     );
   }
@@ -204,6 +241,14 @@ export default function AdminUserDetailPage() {
           </div>
         </Card>
       </div>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

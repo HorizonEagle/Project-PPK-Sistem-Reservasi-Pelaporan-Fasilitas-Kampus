@@ -13,6 +13,8 @@ import {
   Select,
   Textarea,
   Badge,
+  ErrorModal,
+  useErrorPopup,
 } from '@/components/ui';
 import {
   facilityTypeLabel,
@@ -28,6 +30,7 @@ export default function EditFacilityPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   const [facility, setFacility] = useState<Facility | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,22 +64,44 @@ export default function EditFacilityPage({
           status: f.status,
         });
       })
-      .catch((err) => setError(err.message || 'Gagal memuat fasilitas'))
+      .catch((err) => {
+        const isConn =
+          err instanceof Error &&
+          (err.name === 'ConnectionError' ||
+            err.message.toLowerCase().includes('terhubung') ||
+            err.message.toLowerCase().includes('koneksi') ||
+            err.message.toLowerCase().includes('network') ||
+            err.message.toLowerCase().includes('failed to fetch'));
+        const msg = err instanceof Error ? err.message : 'Gagal memuat fasilitas.';
+        setError(msg);
+        if (isConn) {
+          triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+        }
+      })
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, triggerErrorPopup]);
 
   const handleSave = async () => {
     setError('');
     setSuccess('');
+
+    const capacity = parseInt(form.capacity);
+    if (isNaN(capacity) || capacity < 1) {
+      const msg = 'Kapasitas fasilitas harus angka positif minimal 1.';
+      setError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+    if (!form.name.trim() || !form.location.trim()) {
+      const msg = 'Nama dan lokasi fasilitas wajib diisi.';
+      setError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      const capacity = parseInt(form.capacity);
-      if (isNaN(capacity) || capacity < 1) {
-        setError('Kapasitas harus angka positif');
-        return;
-      }
-
       await facilitiesApi.update(id, {
         name: form.name,
         type: form.type,
@@ -102,7 +127,16 @@ export default function EditFacilityPage({
           : null
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal memperbarui fasilitas');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui fasilitas.';
+      setError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Memperbarui Fasilitas', msg, isConn);
     } finally {
       setIsSaving(false);
     }
@@ -126,6 +160,13 @@ export default function EditFacilityPage({
         >
           ← Kembali
         </Link>
+        <ErrorModal
+          isOpen={errorPopup.isOpen}
+          onClose={closeErrorPopup}
+          title={errorPopup.title}
+          message={errorPopup.message}
+          isConnectionError={errorPopup.isConnectionError}
+        />
       </div>
     );
   }
@@ -254,6 +295,14 @@ export default function EditFacilityPage({
           </div>
         </div>
       </Card>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

@@ -15,6 +15,8 @@ import {
   Alert,
   Modal,
   Textarea,
+  ErrorModal,
+  useErrorPopup,
 } from '@/components/ui';
 import {
   facilityTypeLabel,
@@ -40,6 +42,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function AdminFacilitiesPage() {
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
   const [facilities, setFacilities] = useState<PaginatedResponse<Facility> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -80,11 +83,22 @@ export default function AdminFacilitiesPage() {
       const res = await facilitiesApi.list(params);
       setFacilities(res);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat fasilitas');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal memuat fasilitas.';
+      setError(msg);
+      if (isConn) {
+        triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [search, type, status, page]);
+  }, [search, type, status, page, triggerErrorPopup]);
 
   useEffect(() => {
     fetchFacilities();
@@ -111,15 +125,24 @@ export default function AdminFacilitiesPage() {
   // Create handler
   const handleCreate = async () => {
     setCreateError('');
+
+    const capacity = parseInt(createForm.capacity);
+    if (isNaN(capacity) || capacity < 1) {
+      const msg = 'Kapasitas fasilitas harus berupa angka positif minimal 1.';
+      setCreateError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+    if (!createForm.name.trim() || !createForm.location.trim()) {
+      const msg = 'Nama dan lokasi fasilitas wajib diisi.';
+      setCreateError(msg);
+      triggerErrorPopup('Validasi Input', msg);
+      return;
+    }
+
     setCreateLoading(true);
 
     try {
-      const capacity = parseInt(createForm.capacity);
-      if (isNaN(capacity) || capacity < 1) {
-        setCreateError('Kapasitas harus angka positif');
-        return;
-      }
-
       await facilitiesApi.create({
         name: createForm.name,
         type: createForm.type,
@@ -139,7 +162,16 @@ export default function AdminFacilitiesPage() {
       setSuccessMessage('Fasilitas berhasil ditambahkan!');
       fetchFacilities();
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'Gagal membuat fasilitas');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal membuat fasilitas.';
+      setCreateError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Menambah Fasilitas', msg, isConn);
     } finally {
       setCreateLoading(false);
     }
@@ -152,7 +184,16 @@ export default function AdminFacilitiesPage() {
       setSuccessMessage(`Status fasilitas berhasil diubah ke ${facilityStatusLabel(newStatus)}`);
       fetchFacilities();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal mengubah status');
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal mengubah status fasilitas.';
+      setError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Mengubah Status', msg, isConn);
     }
   };
 
@@ -370,6 +411,14 @@ export default function AdminFacilitiesPage() {
           </div>
         </div>
       </Modal>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

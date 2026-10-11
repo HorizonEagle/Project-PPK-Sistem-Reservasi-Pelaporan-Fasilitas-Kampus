@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reservationsApi } from '@/lib/api';
-import { Card, Badge, Button, Spinner, Alert, Modal, Textarea } from '@/components/ui';
+import { Card, Badge, Button, Spinner, Alert, Modal, Textarea, ErrorModal, useErrorPopup } from '@/components/ui';
 import {
   reservationStatusLabel,
   reservationStatusColor,
@@ -22,6 +22,7 @@ export default function ReservationDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { errorPopup, triggerErrorPopup, closeErrorPopup } = useErrorPopup();
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,9 +43,22 @@ export default function ReservationDetailPage({
     reservationsApi
       .get(id)
       .then((res) => setReservation(res.data))
-      .catch((err) => setError(err.message || 'Gagal memuat reservasi'))
+      .catch((err) => {
+        const isConn =
+          err instanceof Error &&
+          (err.name === 'ConnectionError' ||
+            err.message.toLowerCase().includes('terhubung') ||
+            err.message.toLowerCase().includes('koneksi') ||
+            err.message.toLowerCase().includes('network') ||
+            err.message.toLowerCase().includes('failed to fetch'));
+        const msg = err.message || 'Gagal memuat reservasi.';
+        setError(msg);
+        if (isConn) {
+          triggerErrorPopup('Gangguan Koneksi Jaringan', msg, true);
+        }
+      })
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, triggerErrorPopup]);
 
   // Auto-hide success message
   useEffect(() => {
@@ -69,9 +83,16 @@ export default function ReservationDetailPage({
       const res = await reservationsApi.get(id);
       setReservation(res.data);
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Gagal membatalkan reservasi'
-      );
+      const isConn =
+        err instanceof Error &&
+        (err.name === 'ConnectionError' ||
+          err.message.toLowerCase().includes('terhubung') ||
+          err.message.toLowerCase().includes('koneksi') ||
+          err.message.toLowerCase().includes('network') ||
+          err.message.toLowerCase().includes('failed to fetch'));
+      const msg = err instanceof Error ? err.message : 'Gagal membatalkan reservasi.';
+      setActionError(msg);
+      triggerErrorPopup(isConn ? 'Gangguan Koneksi Jaringan' : 'Gagal Membatalkan Reservasi', msg, isConn);
     } finally {
       setCancelLoading(false);
     }
@@ -117,6 +138,13 @@ export default function ReservationDetailPage({
             ← Kembali ke daftar reservasi
           </Link>
         </div>
+        <ErrorModal
+          isOpen={errorPopup.isOpen}
+          onClose={closeErrorPopup}
+          title={errorPopup.title}
+          message={errorPopup.message}
+          isConnectionError={errorPopup.isConnectionError}
+        />
       </div>
     );
   }
@@ -405,6 +433,14 @@ export default function ReservationDetailPage({
           </div>
         </div>
       </Modal>
+
+      <ErrorModal
+        isOpen={errorPopup.isOpen}
+        onClose={closeErrorPopup}
+        title={errorPopup.title}
+        message={errorPopup.message}
+        isConnectionError={errorPopup.isConnectionError}
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ Aplikasi web untuk mengelola reservasi fasilitas kampus (ruang kelas, aula, labo
 | Auth | JWT (jose) + bcrypt |
 | Validasi | Zod |
 | Styling | Tailwind CSS 4 |
+| Testing | Vitest (Unit & Integration Tests) |
+| Monitoring | Prometheus (prom-client · Port 9090) |
 | Runtime | Docker + Docker Compose |
 
 ## 🗂️ Struktur Repository
@@ -20,8 +22,12 @@ Aplikasi web untuk mengelola reservasi fasilitas kampus (ruang kelas, aula, labo
 ```
 Project-PPK-Sistem-Reservasi-Pelaporan-Fasilitas-Kampus/
 ├── backend/                  ← API Server Next.js (port 3001)
+│   ├── __tests__/            ← Unit & Integration Test Suites
+│   │   ├── unit/             ← Tests validator, slot-utils, auth, export
+│   │   └── integration/      ← Tests API routes (auth, metrics)
 │   ├── prisma/               ← Schema, migrasi, seeder
-│   ├── lib/                  ← auth-utils, cors, prisma client, validators
+│   ├── lib/                  ← auth-utils, cors, metrics, prisma, validators
+│   ├── vitest.config.mts     ← Konfigurasi Vitest & path alias
 │   └── src/app/api/          ← Route Handlers
 ├── frontend/                 ← UI Next.js (port 3000)
 │   ├── components/           ← UI design system, layout
@@ -31,7 +37,10 @@ Project-PPK-Sistem-Reservasi-Pelaporan-Fasilitas-Kampus/
 │       ├── dashboard/        ← User dashboard (role: user)
 │       ├── petugas/          ← Officer dashboard (role: officer)
 │       └── admin/            ← Admin dashboard (role: admin)
+├── monitoring/
+│   └── prometheus.yml        ← Konfigurasi scraping Prometheus
 ├── SYSTEM_DESIGN.md          ← Arsitektur teknis & database schema
+├── BACKEND_ARCHITECTURE.md   ← Dokumentasi arsitektur backend komprehensif
 └── docker-compose.yml
 ```
 
@@ -66,6 +75,16 @@ npm install
 npm run dev                       # start di port 3000
 
 # 5. Buka http://localhost:3000
+
+# 6. Menjalankan Automated Tests (Backend)
+cd backend
+npm test               # Menjalankan 129 unit & integration tests
+npm run test:watch     # Mode interaktif (watch)
+npm run test:coverage  # Menampilkan laporan coverage v8
+
+# 7. Monitoring Prometheus (Opsional)
+docker compose up prometheus -d
+# Akses dasbor metrik Prometheus di http://localhost:9090
 ```
 
 ## 👤 Akun Demo (Setelah Seeding)
@@ -133,11 +152,12 @@ Base URL: `http://localhost:3001/api`
 | PATCH | `/api/users/:id` | ✅ Admin | Edit data user |
 | PATCH | `/api/users/:id/verify` | ✅ Admin | Verifikasi atau tolak akun pending |
 
-### Dashboard & Export
+### Dashboard, Export & Monitoring
 | Method | Endpoint | Auth | Deskripsi |
 |--------|----------|------|-----------|
 | GET | `/api/dashboard` | ✅ | Statistik ringkasan (user: personal, admin/officer: global + totalUsers) |
 | GET | `/api/export` | ✅ Admin/Officer | Ekspor data ke **CSV / Excel (.xls) / PDF (.html)** |
+| GET | `/api/metrics` | Opsional | Prometheus metrics scrape endpoint (dilindungi METRICS_TOKEN jika diset) |
 
 #### Query params `/api/export`:
 | Param | Nilai | Keterangan |
@@ -193,6 +213,34 @@ CORS dihandle di 3 level (triple-layer) untuk mengatasi berbagai edge case di Ne
 | `/admin/users/create` | Admin | Buat akun baru |
 | `/admin/users/:id` | Admin | Detail user + verifikasi + ubah role |
 | `/admin/reports` | Admin | Rekap statistik + ekspor data |
+
+## 🧪 Pengujian (Testing) & 📊 Monitoring
+
+### Automated Testing (Vitest)
+Backend dilengkapi dengan 129 pengujian otomatis (unit testing dan integration testing) menggunakan Vitest:
+- **Unit Testing**:
+  - `slot-utils.test.ts`: Logika interval 30 menit, rentang operasional 07:00-20:00, validasi hari, konversi waktu Prisma (`@db.Time`).
+  - `auth.test.ts`: Hashing password dengan bcrypt (salt 10 rounds), pembuatan dan verifikasi JWT token, integritas payload user.
+  - `export-utils.test.ts`: Pembangkitan format CSV, escaping tanda kutip ganda, nested object keys, template print HTML table, proteksi XSS.
+  - `validators-auth.test.ts`: Skema register, login, create user, dan verifikasi admin via Zod.
+  - `validators-facility.test.ts`: Skema validasi pembuatan dan pembaruan fasilitas kampus.
+  - `validators-reservation.test.ts`: Skema pengajuan reservasi, alasan penolakan, pembatalan.
+  - `validators-report.test.ts`: Skema laporan kerusakan, validasi kategori, catatan resolusi.
+- **Integration Testing**:
+  - `auth-routes.test.ts`: Simulasi route handler POST `/api/auth/login` dan POST `/api/auth/register` (status 200, 201, 401, 403, 409, 422, 500) dengan Prisma Client mock.
+  - `metrics.test.ts`: Verifikasi scrape endpoint GET `/api/metrics`, format standar Prometheus, DB gauges, dan error handling saat DB offline.
+
+### Monitoring (Prometheus)
+Backend mengintegrasikan `prom-client` untuk mengekspos metrik sistem, HTTP, dan database:
+- **Metrik Sistem**: CPU usage, memori heap Node.js, event loop lag, dan active handles.
+- **Metrik HTTP**: Counter `http_requests_total` dan Histogram durasi `http_request_duration_seconds` yang di-wrap via fungsi `withMetrics` per method, route, dan status kode.
+- **Metrik Bisnis & Database**:
+  - `campus_db_up`: Indikator koneksi database (1 jika aktif, 0 jika terputus).
+  - `campus_users`: Jumlah pengguna per status (active, pending_verification, rejected).
+  - `campus_facilities`: Jumlah fasilitas per status (active, inactive, under_maintenance).
+  - `campus_reservations`: Jumlah reservasi per status (pending, approved, rejected, cancelled).
+  - `campus_reports`: Jumlah laporan kerusakan per status (new_report, in_progress, resolved, rejected).
+- **Service Container**: Dijalankan melalui `docker compose up prometheus -d` pada port 9090 dengan konfigurasi di `monitoring/prometheus.yml`.
 
 ## 📌 Konvensi Commit
 
