@@ -3,9 +3,12 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword, generateToken } from '@/lib/auth';
 import { loginSchema } from '@/lib/validators/auth';
 import { ZodError } from 'zod';
+import { withMetrics } from '@/lib/metrics';
 export { OPTIONS } from '@/lib/cors';
 
-export async function POST(request: NextRequest) {
+export const POST = withMetrics('/api/auth/login', handleLogin);
+
+async function handleLogin(request: NextRequest) {
   try {
     const body = await request.json();
 

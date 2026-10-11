@@ -19,6 +19,7 @@ const PUBLIC_API_ROUTES = [
   /^\/api\/facilities(\/.*)?$/,  // semua facilities bisa diakses publik
   /^\/api\/health$/,             // health check
   /^\/api\/test$/,               // testing endpoint
+  /^\/api\/metrics$/,            // Prometheus scrape (dilindungi METRICS_TOKEN opsional)
 ];
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
