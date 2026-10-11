@@ -8,7 +8,8 @@ services:
     environment:
       POSTGRES_DB: campus_facility
       POSTGRES_USER: campus_user
-      POSTGRES_PASSWORD: campus_password_123
+      # Bisa ditimpa lewat environment/.env; nilai setelah ":-" hanya default untuk development
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campus_password_123}
     ports:
       - "5432:5432"
     volumes:
@@ -23,8 +24,11 @@ services:
     ports:
       - "3001:3001"
     environment:
-      DATABASE_URL: postgresql://campus_user:campus_password_123@db:5432/campus_facility
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      DATABASE_URL: postgresql://campus_user:${POSTGRES_PASSWORD:-campus_password_123}@db:5432/campus_facility
+      # Di production JWT_SECRET WAJIB diganti (backend menolak start tanpa JWT_SECRET)
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      # Wajib di production; harus sama dengan `authorization.credentials` di monitoring/prometheus.yml
+      METRICS_TOKEN: ${METRICS_TOKEN:-dev-metrics-token-change-me}
       JWT_EXPIRES_IN: 24h
       BCRYPT_ROUNDS: 10
       NEXT_PUBLIC_APP_URL: http://localhost:3000

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { SlotAvailability } from '@/types';
 import { facilitiesApi } from '@/lib/api';
 import { Spinner } from '@/components/ui';
+import { todayInJakarta } from '@/lib/utils';
 
 // ─── LiveClockBanner ──────────────────────────────────────────────────────────
 
@@ -174,6 +175,15 @@ export function SlotGrid({
     return () => clearInterval(id);
   }, []);
 
+  // Simpan onError di ref, JANGAN taruh di dependency effect di bawah. Induk biasanya
+  // mengirim fungsi inline (identitas baru tiap render); jika jadwal gagal dimuat, popup error
+  // memicu render ulang, effect jalan lagi, request ulang, gagal lagi, dan seterusnya tanpa henti
+  // (teramati ratusan request 404 beruntun).
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
   useEffect(() => {
     if (!facilityId || !selectedDate) return;
 
@@ -189,12 +199,12 @@ export function SlotGrid({
       .catch((err) => {
         const errorObj = err instanceof Error ? err : new Error('Gagal memuat jadwal');
         setError(errorObj.message);
-        onError?.(errorObj);
+        onErrorRef.current?.(errorObj);
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [facilityId, selectedDate, onError]);
+  }, [facilityId, selectedDate]);
 
   // ─── Determine which slots are blocked by time rules ──────────────────────
   // A slot is "time-blocked" when:
@@ -563,7 +573,7 @@ export function DatePicker({ value, onChange, minDate }: DatePickerProps) {
     return () => clearInterval(id);
   }, []);
 
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = todayInJakarta(now);
   const isToday = value === todayStr;
 
   // Days from today to selected date

@@ -174,7 +174,7 @@ Base URL: `http://localhost:3001/api`
 ### CORS (Cross-Origin Resource Sharing)
 CORS dihandle di 3 level (triple-layer) untuk mengatasi berbagai edge case di Next.js 16:
 1. **`next.config.ts`** — CORS headers pada semua response `/api/*` (termasuk preflight auto-generated)
-2. **`middleware.ts`** — Safety net OPTIONS handler + CORS pada error response (401/403)
+2. **`backend/src/proxy.ts`** (Next.js 16, pengganti `middleware.ts`; harus di dalam `src/`) — Safety net OPTIONS handler + CORS pada error response (401/403)
 3. **Route-level `export { OPTIONS }`** — Setiap file route mengekspor handler dari `lib/cors.ts`
 
 ### Auth Flow
@@ -183,8 +183,9 @@ CORS dihandle di 3 level (triple-layer) untuk mengatasi berbagai edge case di Ne
 3. Backend route handler memanggil `getAuthUser(request)` dari `lib/auth-utils.ts` untuk decode JWT langsung
 4. Frontend middleware baca cookie `token` → verifikasi JWT → proteksi route `/dashboard/*`, `/petugas/*`, `/admin/*`
 
-> **Penting**: Di Next.js 16, middleware **tidak** meneruskan custom headers ke App Router route handlers.
-> Karena itu, setiap route handler decode JWT sendiri via `getAuthUser()`, bukan membaca `x-user-id`/`x-user-role`.
+> **Penting**: Identitas HANYA diambil dari JWT yang tanda tangannya terverifikasi. Setiap route handler memanggil `getAuthUser()`
+> yang memverifikasi token sendiri; header `x-user-id`/`x-user-role`/`x-user-email` dari klien **tidak pernah dipercaya**
+> (header itu bisa ditulis siapa pun). Di production `JWT_SECRET` wajib diatur dan `/api/metrics` wajib `METRICS_TOKEN`.
 
 ## 🗺️ Halaman Frontend
 

@@ -14,6 +14,7 @@ import {
   facilityTypeLabel,
   getFacilityImageUrl,
   handleFacilityImageError,
+  todayInJakarta,
 } from '@/lib/utils';
 import type { Facility, PaginatedResponse } from '@/types';
 
@@ -64,8 +65,8 @@ export default function ReservationForm({ preselectedFacilityId }: ReservationFo
     isConnectionError: false,
   });
 
-  // Today string for min date (YYYY-MM-DD)
-  const today = new Date().toISOString().split('T')[0];
+  // Today string for min date (YYYY-MM-DD), zona WIB (bukan UTC)
+  const today = todayInJakarta();
 
   // Helper untuk memunculkan popup modal error
   const triggerErrorPopup = useCallback(

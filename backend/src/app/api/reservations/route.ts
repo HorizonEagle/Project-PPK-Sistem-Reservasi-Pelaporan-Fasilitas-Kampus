@@ -4,6 +4,7 @@ import { createReservationSchema } from '../../../../lib/validators/reservation'
 import {
   validateSlotTime,
   validateReservationDate,
+  validateLeadTime,
   parseTimeToDate,
   prismaTimeToHHMM,
 } from '../../../../lib/slot-utils';
@@ -164,6 +165,15 @@ export async function POST(request: NextRequest) {
     if (!dateValidation.valid) {
       return NextResponse.json(
         { error: dateValidation.error },
+        { status: 400 }
+      );
+    }
+
+    // Validasi tenggat minimal 12 jam sebelum waktu mulai (sama dengan UI kalender)
+    const leadTimeValidation = validateLeadTime(date, startTime);
+    if (!leadTimeValidation.valid) {
+      return NextResponse.json(
+        { error: leadTimeValidation.error },
         { status: 400 }
       );
     }
